@@ -1,0 +1,1 @@
+{"version":3,"sources":["../app/js/app.js"],"names":["angular","module"],"mappings":"AAAA;;AAEAA,QAAQC,MAAR,CAAe,KAAf,EAAsB,EAAtB","file":"app.js","sourcesContent":["'use strict';\n\nangular.module('app', [\n\n])\n"]}

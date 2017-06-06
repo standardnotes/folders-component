@@ -1,0 +1,90 @@
+body {
+  background-color: #f6f6f6;
+  font-family: sans-serif;
+  margin: 0;
+  padding: 0;
+  padding-top: 10px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100%;
+  height: 100%;
+  font-size: 20px;
+}
+
+.tag-tree {
+  padding-left: 10px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.tag-tree .self {
+  min-height: 30px;
+  /* When a note is dragged over tag */
+}
+.tag-tree .self.selected {
+  background-color: #dbdbdb;
+  color: black;
+}
+.tag-tree .self.selected > .title {
+  color: black;
+  cursor: text;
+}
+.tag-tree .self.over {
+  background-color: #dbdbdb;
+  color: black;
+  border: 2px dashed white;
+}
+.tag-tree .self.over > .title {
+  color: black;
+}
+.tag-tree .self:hover:not(.selected) {
+  color: black;
+}
+.tag-tree .self:hover:not(.selected) > .title {
+  color: black;
+}
+.tag-tree .self:hover:not(.selected):before {
+  content: '';
+  height: 30px;
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: -1;
+  background: #dbdbdb;
+}
+.tag-tree .self .info {
+  height: 20px;
+}
+.tag-tree .self .info .title {
+  width: 80%;
+  background-color: transparent;
+  font-weight: 600;
+  float: left;
+  color: black;
+  border: none;
+  cursor: pointer;
+  text-overflow: ellipsis;
+  width: 75%;
+  pointer-events: none;
+}
+.tag-tree .self .info .count {
+  position: absolute;
+  right: 17px;
+  padding-top: 1px;
+  font-weight: bold;
+}
+.tag-tree .self .menu {
+  font-size: 11px;
+  opacity: 0.5;
+  font-weight: bold;
+  clear: both;
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+.tag-tree .self .menu > .item {
+  margin-right: 2px;
+}
+.tag-tree .self .menu:hover {
+  opacity: 1.0;
+}
+
+/*# sourceMappingURL=app.css.map */

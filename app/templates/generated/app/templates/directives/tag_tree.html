@@ -1,0 +1,10 @@
+<div class='self' draggable='true' drop='onDrop' ng-class='{&#39;selected&#39; : tag.selected}' ng-click='selectTag()' tag-id='tag.uuid'>
+<div class='info'>
+<div class='title'>
+{{tag.displayTitle}}
+</div>
+</div>
+</div>
+<div ng-repeat='child in tag.children'>
+<div change-parent='changeParent()' class='tag-tree' on-select='onSelect()' tag='child'></div>
+</div>
