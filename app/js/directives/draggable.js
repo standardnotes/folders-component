@@ -5,13 +5,13 @@ angular
     scope: {
       tagId: "=",
       drop: '&',
+      isDraggable: "="
     },
     link: function(scope, element, attrs) {
       // 'ngInject';
-      // this gives us the native JS object
       var el = element[0];
 
-      el.draggable = true;
+      el.draggable = scope.isDraggable;
 
       el.addEventListener(
         'dragstart',
@@ -28,6 +28,7 @@ angular
         'dragend',
         function(e) {
           this.classList.remove('drag');
+          this.classList.remove('over');
           return false;
         },
         false
@@ -78,6 +79,9 @@ angular
           this.classList.remove('over');
 
           var targetId = JSON.parse(e.dataTransfer.getData('TagId'));
+          if(targetId === scope.tagId) {
+            return;
+          }
           scope.$apply(function(scope) {
             scope.drop()(targetId, scope.tagId);
           });

@@ -16,8 +16,10 @@ angular.module('app').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('directives/tag_tree.html',
-    "<div class='self' draggable='true' drop='onDrop' ng-class='{&#39;selected&#39; : tag.selected}' ng-click='selectTag()' tag-id='tag.uuid'>\n" +
+    "<div ng-if='tag'>\n" +
+    "<div class='self' draggable='true' drop='onDrop' is-draggable='!tag.master' ng-class='{&#39;selected&#39; : tag.selected}' ng-click='selectTag()' tag-id='tag.uuid'>\n" +
     "<div class='info'>\n" +
+    "<div class='circle' ng-class='circleClassForTag(tag)'></div>\n" +
     "<div class='title'>\n" +
     "{{tag.displayTitle}}\n" +
     "</div>\n" +
@@ -25,12 +27,16 @@ angular.module('app').run(['$templateCache', function($templateCache) {
     "</div>\n" +
     "<div ng-repeat='child in tag.children'>\n" +
     "<div change-parent='changeParent()' class='tag-tree' on-select='onSelect()' tag='child'></div>\n" +
+    "</div>\n" +
     "</div>\n"
   );
 
 
   $templateCache.put('home.html',
-    "<div change-parent='changeParent' class='tag-tree' on-select='selectTag' tag='masterTag'></div>\n"
+    "<div class='header'>\n" +
+    "<h3>Tags</h3>\n" +
+    "</div>\n" +
+    "<div change-parent='changeParent' class='tag-tree master' on-select='selectTag' tag='masterTag'></div>\n"
   );
 
 }]);

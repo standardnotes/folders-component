@@ -17,6 +17,7 @@ class HomeCtrl {
 
       for(var tag of $scope.masterTag.rawTags) {
         tag.children = [];
+        tag.parent = null;
       };
 
       for(var tag of $scope.masterTag.rawTags) {
@@ -24,6 +25,7 @@ class HomeCtrl {
         var comps = name.split(delimiter);
         tag.displayTitle = comps[comps.length -1];
         if(comps.length == 1) {
+          tag.parent = $scope.masterTag;
           continue;
         }
 
@@ -37,6 +39,7 @@ class HomeCtrl {
         // console.log("Adding", tag.content.title, "to", parent.content.title);
 
         parent.children.push(tag);
+        tag.parent = parent;
 
         // remove chid from master list
         var index = resolved.indexOf(tag);
@@ -49,7 +52,6 @@ class HomeCtrl {
     }
 
     $scope.changeParent = function(sourceId, targetId) {
-
       var source = $scope.masterTag.rawTags.filter(function(tag){
         return tag.uuid === sourceId;
       })[0];
@@ -57,6 +59,10 @@ class HomeCtrl {
       var target = targetId === "0" ? $scope.masterTag : $scope.masterTag.rawTags.filter(function(tag){
         return tag.uuid === targetId;
       })[0];
+
+      if(target.parent === source) {
+        return;
+      }
 
       var needsSave = [source];
 

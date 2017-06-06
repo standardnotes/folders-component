@@ -1,8 +1,8 @@
-
-.self{"draggable" => "true", "drop" => "onDrop", "tag-id" => "tag.uuid", "ng-click" => "selectTag()",
-          "ng-class" => "{'selected' : tag.selected}"}
-  .info
-    .title
-      {{tag.displayTitle}}
-%div{"ng-repeat" => "child in tag.children"}
-  .tag-tree{"tag" => "child", "change-parent" => "changeParent()", "on-select" => "onSelect()"}
+%div{"ng-if" => "tag"}
+  .self{"draggable" => "true", "is-draggable" => "!tag.master", "drop" => "onDrop", "tag-id" => "tag.uuid", "ng-click" => "selectTag()", "ng-class" => "{'selected' : tag.selected}"}
+    .info
+      .circle{"ng-class" => "circleClassForTag(tag)"}
+      .title
+        {{tag.displayTitle}}
+  %div{"ng-repeat" => "child in tag.children"}
+    .tag-tree{"tag" => "child", "change-parent" => "changeParent()", "on-select" => "onSelect()"}

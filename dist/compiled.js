@@ -33393,6 +33393,7 @@ angular.module('app', [
 
       for(var tag of $scope.masterTag.rawTags) {
         tag.children = [];
+        tag.parent = null;
       };
 
       for(var tag of $scope.masterTag.rawTags) {
@@ -33400,6 +33401,7 @@ angular.module('app', [
         var comps = name.split(delimiter);
         tag.displayTitle = comps[comps.length -1];
         if(comps.length == 1) {
+          tag.parent = $scope.masterTag;
           continue;
         }
 
@@ -33413,6 +33415,7 @@ angular.module('app', [
         // console.log("Adding", tag.content.title, "to", parent.content.title);
 
         parent.children.push(tag);
+        tag.parent = parent;
 
         // remove chid from master list
         var index = resolved.indexOf(tag);
@@ -33425,7 +33428,6 @@ angular.module('app', [
     }
 
     $scope.changeParent = function(sourceId, targetId) {
-
       var source = $scope.masterTag.rawTags.filter(function(tag){
         return tag.uuid === sourceId;
       })[0];
@@ -33433,6 +33435,10 @@ angular.module('app', [
       var target = targetId === "0" ? $scope.masterTag : $scope.masterTag.rawTags.filter(function(tag){
         return tag.uuid === targetId;
       })[0];
+
+      if(target.parent === source) {
+        return;
+      }
 
       var needsSave = [source];
 
@@ -33514,13 +33520,13 @@ angular.module('app').controller('HomeCtrl', HomeCtrl);
     scope: {
       tagId: "=",
       drop: '&',
+      isDraggable: "="
     },
     link: function(scope, element, attrs) {
       // 'ngInject';
-      // this gives us the native JS object
       var el = element[0];
 
-      el.draggable = true;
+      el.draggable = scope.isDraggable;
 
       el.addEventListener(
         'dragstart',
@@ -33537,6 +33543,7 @@ angular.module('app').controller('HomeCtrl', HomeCtrl);
         'dragend',
         function(e) {
           this.classList.remove('drag');
+          this.classList.remove('over');
           return false;
         },
         false
@@ -33587,6 +33594,9 @@ angular.module('app').controller('HomeCtrl', HomeCtrl);
           this.classList.remove('over');
 
           var targetId = JSON.parse(e.dataTransfer.getData('TagId'));
+          if(targetId === scope.tagId) {
+            return;
+          }
           scope.$apply(function(scope) {
             scope.drop()(targetId, scope.tagId);
           });
@@ -33628,6 +33638,17 @@ angular.module('app').controller('HomeCtrl', HomeCtrl);
 
     $scope.selectTag = function() {
       $scope.onSelect()($scope.tag);
+    }
+
+    $scope.circleClassForTag = function(tag) {
+      var generation = 0;
+      var parent = tag.parent;
+      while(parent) {
+        generation++;
+        parent = parent.parent;
+      }
+
+      return "level-" + generation;
     }
 
   }
@@ -33697,12 +33718,18 @@ angular.module('app').directive('tagTree', () => new TagTree);
     this.postMessage("clear-selection", {content_type: "Tag"});
   }
 
-
   saveItem(item) {
     this.saveItems[item];
   }
 
   saveItems(items) {
+    items = items.map(function(item) {
+      var copy = Object.assign({}, item);
+      copy.children = null;
+      copy.parent = null;
+      return copy;
+    });
+
     this.postMessage("save-items", {items: items}, function(data){
       // console.log("Successfully saved items");
     });
@@ -33755,8 +33782,10 @@ angular.module('app').service('extensionManager', ExtensionManager);
 
 
   $templateCache.put('directives/tag_tree.html',
-    "<div class='self' draggable='true' drop='onDrop' ng-class='{&#39;selected&#39; : tag.selected}' ng-click='selectTag()' tag-id='tag.uuid'>\n" +
+    "<div ng-if='tag'>\n" +
+    "<div class='self' draggable='true' drop='onDrop' is-draggable='!tag.master' ng-class='{&#39;selected&#39; : tag.selected}' ng-click='selectTag()' tag-id='tag.uuid'>\n" +
     "<div class='info'>\n" +
+    "<div class='circle' ng-class='circleClassForTag(tag)'></div>\n" +
     "<div class='title'>\n" +
     "{{tag.displayTitle}}\n" +
     "</div>\n" +
@@ -33764,12 +33793,16 @@ angular.module('app').service('extensionManager', ExtensionManager);
     "</div>\n" +
     "<div ng-repeat='child in tag.children'>\n" +
     "<div change-parent='changeParent()' class='tag-tree' on-select='onSelect()' tag='child'></div>\n" +
+    "</div>\n" +
     "</div>\n"
   );
 
 
   $templateCache.put('home.html',
-    "<div change-parent='changeParent' class='tag-tree' on-select='selectTag' tag='masterTag'></div>\n"
+    "<div class='header'>\n" +
+    "<h3>Tags</h3>\n" +
+    "</div>\n" +
+    "<div change-parent='changeParent' class='tag-tree master' on-select='selectTag' tag='masterTag'></div>\n"
   );
 
 }]);

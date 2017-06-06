@@ -29,6 +29,17 @@ class TagTree {
       $scope.onSelect()($scope.tag);
     }
 
+    $scope.circleClassForTag = function(tag) {
+      var generation = 0;
+      var parent = tag.parent;
+      while(parent) {
+        generation++;
+        parent = parent.parent;
+      }
+
+      return "level-" + generation;
+    }
+
   }
 
 }

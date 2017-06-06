@@ -60,12 +60,18 @@ class ExtensionManager {
     this.postMessage("clear-selection", {content_type: "Tag"});
   }
 
-
   saveItem(item) {
     this.saveItems[item];
   }
 
   saveItems(items) {
+    items = items.map(function(item) {
+      var copy = Object.assign({}, item);
+      copy.children = null;
+      copy.parent = null;
+      return copy;
+    });
+
     this.postMessage("save-items", {items: items}, function(data){
       // console.log("Successfully saved items");
     });
