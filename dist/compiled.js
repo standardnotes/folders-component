@@ -33659,6 +33659,7 @@ angular.module('app').directive('tagTree', () => new TagTree);
 ;class ExtensionManager {
 
   constructor($timeout) {
+    this.sentMessages = [];
     this.messageQueue = [];
     this.timeout = $timeout;
 
@@ -33666,17 +33667,18 @@ angular.module('app').directive('tagTree', () => new TagTree);
       console.log("nested tags: message received", event.data);
       this.handleMessage(event.data);
     }.bind(this), false);
-
-    this.postMessage("ready", null, function(data){
-
-    });
   }
 
   handleMessage(payload) {
-    if(payload.original) {
+    if(payload.action === "component-registered") {
+      this.sessionKey = payload.sessionKey;
+      this.onReady();
+    }
+
+    else if(payload.original) {
       // get callback from queue
-      var originalMessage = this.messageQueue.filter(function(message){
-        return message.id === payload.original.id;
+      var originalMessage = this.sentMessages.filter(function(message){
+        return message.messageId === payload.original.messageId;
       })[0];
 
       if(originalMessage.callback) {
@@ -33685,17 +33687,36 @@ angular.module('app').directive('tagTree', () => new TagTree);
     }
   }
 
+  onReady() {
+    for(var message of this.messageQueue) {
+      this.postMessage(message.action, message.data, message.callback);
+    }
+    this.messageQueue = [];
+  }
+
   postMessage(action, data, callback) {
+    if(!this.sessionKey) {
+      this.messageQueue.push({
+        action: action,
+        data: data,
+        callback: callback
+      });
+      return;
+    }
+
     var message = {
       action: action,
       data: data,
-      id: this.generateUUID(),
+      messageId: this.generateUUID(),
+      sessionKey: this.sessionKey,
       api: "component"
     }
 
-    var queueMessage = JSON.parse(JSON.stringify(message));
-    queueMessage.callback = callback;
-    this.messageQueue.push(queueMessage);
+    var sentMessage = JSON.parse(JSON.stringify(message));
+    sentMessage.callback = callback;
+    this.sentMessages.push(sentMessage);
+
+    console.log("Folders is sending message:", message, window.parent);
 
     window.parent.postMessage(message, '*');
   }
@@ -33711,7 +33732,7 @@ angular.module('app').directive('tagTree', () => new TagTree);
   }
 
   selectItem(item) {
-    this.postMessage("select-item", item);
+    this.postMessage("select-item", this.jsonObjectForItem(item));
   }
 
   clearSelection() {
@@ -33724,15 +33745,19 @@ angular.module('app').directive('tagTree', () => new TagTree);
 
   saveItems(items) {
     items = items.map(function(item) {
-      var copy = Object.assign({}, item);
-      copy.children = null;
-      copy.parent = null;
-      return copy;
-    });
+      return this.jsonObjectForItem(item);
+    }.bind(this));
 
     this.postMessage("save-items", {items: items}, function(data){
       // console.log("Successfully saved items");
     });
+  }
+
+  jsonObjectForItem(item) {
+    var copy = Object.assign({}, item);
+    copy.children = null;
+    copy.parent = null;
+    return copy;
   }
 
   generateUUID() {
