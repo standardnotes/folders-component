@@ -13,9 +13,12 @@ angular
 
       el.draggable = scope.isDraggable;
 
+      var counter = 0;
+
       el.addEventListener(
         'dragstart',
         function(e) {
+          counter = 0;
           e.dataTransfer.effectAllowed = 'move';
           e.dataTransfer.setData('TagId', JSON.stringify(scope.tagId));
           this.classList.add('drag');
@@ -46,8 +49,6 @@ angular
         false
       );
 
-      var counter = 0;
-
       el.addEventListener(
         'dragenter',
         function(e) {
@@ -71,9 +72,22 @@ angular
       );
 
       el.addEventListener(
+        'dragexit',
+        function(e) {
+          // counter--;
+          //  if (counter === 0) {
+             this.classList.remove('over');
+          //  }
+          return false;
+        },
+        false
+      );
+
+      el.addEventListener(
         'drop',
         function(e) {
           // Stops some browsers from redirecting.
+          counter = 0;
           if (e.stopPropagation) e.stopPropagation();
 
           this.classList.remove('over');

@@ -36,9 +36,8 @@ class HomeCtrl {
           continue;
         }
 
-        // console.log("Adding", tag.content.title, "to", parent.content.title);
-
         parent.children.push(tag);
+        parent.children = parent.children.sort(function(a, b){return a.content.title > b.content.title});
         tag.parent = parent;
 
         // remove chid from master list
@@ -46,8 +45,7 @@ class HomeCtrl {
         resolved.splice(index, 1);
       }
 
-      // console.log("Resolved:", resolved);
-
+      resolved = resolved.sort(function(a, b){return a.content.title > b.content.title});
       $scope.masterTag.children = resolved;
     }
 
@@ -88,6 +86,13 @@ class HomeCtrl {
       $scope.resolveRawTags();
 
       extensionManager.saveItems(needsSave);
+    }
+
+    $scope.createTag = function(tag) {
+      tag.content_type = "Tag";
+      tag.content.title = tag.parent.content.title + delimiter + tag.title;
+      tag.dummy = false;
+      extensionManager.createItem(tag);
     }
 
     $scope.selectTag = function(tag) {
@@ -135,5 +140,8 @@ class HomeCtrl {
   }
 
 }
+
+// required for firefox
+HomeCtrl.$$ngIsClass = true;
 
 angular.module('app').controller('HomeCtrl', HomeCtrl);

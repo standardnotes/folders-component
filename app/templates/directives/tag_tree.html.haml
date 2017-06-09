@@ -2,7 +2,12 @@
   .self{"draggable" => "true", "is-draggable" => "!tag.master", "drop" => "onDrop", "tag-id" => "tag.uuid", "ng-click" => "selectTag()", "ng-class" => "{'selected' : tag.selected}"}
     .info
       .circle{"ng-class" => "circleClassForTag(tag)"}
-      .title
+      .title{"ng-if" => "!tag.dummy"}
         {{tag.displayTitle}}
+      .hover-menu{"ng-if" => "!tag.dummy"}
+        %button{"ng-click" => "addChild(tag); $event.stopPropagation();"} +
+      .new-tag-form{"ng-if" => "tag.dummy"}
+        %input{"placeholder" => "", "autofocus" => "true", "ng-model" => "tag.title", "ng-keyup" => "$event.keyCode == 13 && saveNewTag(tag)"}
+
   %div{"ng-repeat" => "child in tag.children"}
-    .tag-tree{"tag" => "child", "change-parent" => "changeParent()", "on-select" => "onSelect()"}
+    .tag-tree{"tag" => "child", "change-parent" => "changeParent()", "on-select" => "onSelect()", "create-tag" => "createTag()"}

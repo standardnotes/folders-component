@@ -2,12 +2,18 @@
 <div class='self' draggable='true' drop='onDrop' is-draggable='!tag.master' ng-class='{&#39;selected&#39; : tag.selected}' ng-click='selectTag()' tag-id='tag.uuid'>
 <div class='info'>
 <div class='circle' ng-class='circleClassForTag(tag)'></div>
-<div class='title'>
+<div class='title' ng-if='!tag.dummy'>
 {{tag.displayTitle}}
+</div>
+<div class='hover-menu' ng-if='!tag.dummy'>
+<button ng-click='addChild(tag); $event.stopPropagation();'>+</button>
+</div>
+<div class='new-tag-form' ng-if='tag.dummy'>
+<input autofocus='true' ng-keyup='$event.keyCode == 13 &amp;&amp; saveNewTag(tag)' ng-model='tag.title' placeholder=''>
 </div>
 </div>
 </div>
 <div ng-repeat='child in tag.children'>
-<div change-parent='changeParent()' class='tag-tree' on-select='onSelect()' tag='child'></div>
+<div change-parent='changeParent()' class='tag-tree' create-tag='createTag()' on-select='onSelect()' tag='child'></div>
 </div>
 </div>

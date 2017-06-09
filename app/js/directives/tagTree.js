@@ -6,7 +6,8 @@ class TagTree {
     this.scope = {
       tag: "=",
       changeParent: "&",
-      onSelect: "&"
+      onSelect: "&",
+      createTag: "&"
     };
   }
 
@@ -29,6 +30,18 @@ class TagTree {
       $scope.onSelect()($scope.tag);
     }
 
+    $scope.addChild = function(parent) {
+      parent.children.unshift({dummy: true, parent: parent, content: {}})
+    }
+
+    $scope.saveNewTag = function(tag) {
+      if(tag.content.title.length === 0) {
+        tag.parent.children.slice(tag.parent.children.indexOf(tag), 0);
+        return;
+      }
+      $scope.createTag()(tag);
+    }
+
     $scope.circleClassForTag = function(tag) {
       var generation = 0;
       var parent = tag.parent;
@@ -41,7 +54,8 @@ class TagTree {
     }
 
   }
-
 }
+
+TagTree.$$ngIsClass = true;
 
 angular.module('app').directive('tagTree', () => new TagTree);

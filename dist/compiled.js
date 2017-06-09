@@ -33412,9 +33412,8 @@ angular.module('app', [
           continue;
         }
 
-        // console.log("Adding", tag.content.title, "to", parent.content.title);
-
         parent.children.push(tag);
+        parent.children = parent.children.sort(function(a, b){return a.content.title > b.content.title});
         tag.parent = parent;
 
         // remove chid from master list
@@ -33422,8 +33421,7 @@ angular.module('app', [
         resolved.splice(index, 1);
       }
 
-      // console.log("Resolved:", resolved);
-
+      resolved = resolved.sort(function(a, b){return a.content.title > b.content.title});
       $scope.masterTag.children = resolved;
     }
 
@@ -33464,6 +33462,13 @@ angular.module('app', [
       $scope.resolveRawTags();
 
       extensionManager.saveItems(needsSave);
+    }
+
+    $scope.createTag = function(tag) {
+      tag.content_type = "Tag";
+      tag.content.title = tag.parent.content.title + delimiter + tag.title;
+      tag.dummy = false;
+      extensionManager.createItem(tag);
     }
 
     $scope.selectTag = function(tag) {
@@ -33512,6 +33517,9 @@ angular.module('app', [
 
 }
 
+// required for firefox
+HomeCtrl.$$ngIsClass = true;
+
 angular.module('app').controller('HomeCtrl', HomeCtrl);
 ;angular
   .module('app')
@@ -33528,9 +33536,12 @@ angular.module('app').controller('HomeCtrl', HomeCtrl);
 
       el.draggable = scope.isDraggable;
 
+      var counter = 0;
+
       el.addEventListener(
         'dragstart',
         function(e) {
+          counter = 0;
           e.dataTransfer.effectAllowed = 'move';
           e.dataTransfer.setData('TagId', JSON.stringify(scope.tagId));
           this.classList.add('drag');
@@ -33561,8 +33572,6 @@ angular.module('app').controller('HomeCtrl', HomeCtrl);
         false
       );
 
-      var counter = 0;
-
       el.addEventListener(
         'dragenter',
         function(e) {
@@ -33586,9 +33595,22 @@ angular.module('app').controller('HomeCtrl', HomeCtrl);
       );
 
       el.addEventListener(
+        'dragexit',
+        function(e) {
+          // counter--;
+          //  if (counter === 0) {
+             this.classList.remove('over');
+          //  }
+          return false;
+        },
+        false
+      );
+
+      el.addEventListener(
         'drop',
         function(e) {
           // Stops some browsers from redirecting.
+          counter = 0;
           if (e.stopPropagation) e.stopPropagation();
 
           this.classList.remove('over');
@@ -33617,7 +33639,8 @@ angular.module('app').controller('HomeCtrl', HomeCtrl);
     this.scope = {
       tag: "=",
       changeParent: "&",
-      onSelect: "&"
+      onSelect: "&",
+      createTag: "&"
     };
   }
 
@@ -33640,6 +33663,18 @@ angular.module('app').controller('HomeCtrl', HomeCtrl);
       $scope.onSelect()($scope.tag);
     }
 
+    $scope.addChild = function(parent) {
+      parent.children.unshift({dummy: true, parent: parent, content: {}})
+    }
+
+    $scope.saveNewTag = function(tag) {
+      if(tag.content.title.length === 0) {
+        tag.parent.children.slice(tag.parent.children.indexOf(tag), 0);
+        return;
+      }
+      $scope.createTag()(tag);
+    }
+
     $scope.circleClassForTag = function(tag) {
       var generation = 0;
       var parent = tag.parent;
@@ -33652,8 +33687,9 @@ angular.module('app').controller('HomeCtrl', HomeCtrl);
     }
 
   }
-
 }
+
+TagTree.$$ngIsClass = true;
 
 angular.module('app').directive('tagTree', () => new TagTree);
 ;class ExtensionManager {
@@ -33664,7 +33700,7 @@ angular.module('app').directive('tagTree', () => new TagTree);
     this.timeout = $timeout;
 
     window.addEventListener("message", function(event){
-      console.log("nested tags: message received", event.data);
+      // console.log("nested tags: message received", event.data);
       this.handleMessage(event.data);
     }.bind(this), false);
   }
@@ -33716,23 +33752,24 @@ angular.module('app').directive('tagTree', () => new TagTree);
     sentMessage.callback = callback;
     this.sentMessages.push(sentMessage);
 
-    console.log("Folders is sending message:", message, window.parent);
-
     window.parent.postMessage(message, '*');
   }
 
   streamItems(callback) {
     this.postMessage("stream-items", {content_types: ["Tag"]}, function(data){
-      // console.log("Get items completion", data);
-      var tags = data.items["Tag"];
+      var tags = data.items;
       this.timeout(function(){
         callback(tags);
       })
     }.bind(this));
   }
 
+  createItem(item) {
+    this.postMessage("create-item", {item: this.jsonObjectForItem(item)});
+  }
+
   selectItem(item) {
-    this.postMessage("select-item", this.jsonObjectForItem(item));
+    this.postMessage("select-item", {item: this.jsonObjectForItem(item)});
   }
 
   clearSelection() {
@@ -33785,8 +33822,9 @@ angular.module('app').directive('tagTree', () => new TagTree);
       return uuid;
     }
   }
-
 }
+
+ExtensionManager.$$ngIsClass = true;
 
 angular.module('app').service('extensionManager', ExtensionManager);
 ;angular.module('app').run(['$templateCache', function($templateCache) {
@@ -33811,13 +33849,19 @@ angular.module('app').service('extensionManager', ExtensionManager);
     "<div class='self' draggable='true' drop='onDrop' is-draggable='!tag.master' ng-class='{&#39;selected&#39; : tag.selected}' ng-click='selectTag()' tag-id='tag.uuid'>\n" +
     "<div class='info'>\n" +
     "<div class='circle' ng-class='circleClassForTag(tag)'></div>\n" +
-    "<div class='title'>\n" +
+    "<div class='title' ng-if='!tag.dummy'>\n" +
     "{{tag.displayTitle}}\n" +
+    "</div>\n" +
+    "<div class='hover-menu' ng-if='!tag.dummy'>\n" +
+    "<button ng-click='addChild(tag); $event.stopPropagation();'>+</button>\n" +
+    "</div>\n" +
+    "<div class='new-tag-form' ng-if='tag.dummy'>\n" +
+    "<input autofocus='true' ng-keyup='$event.keyCode == 13 &amp;&amp; saveNewTag(tag)' ng-model='tag.title' placeholder=''>\n" +
     "</div>\n" +
     "</div>\n" +
     "</div>\n" +
     "<div ng-repeat='child in tag.children'>\n" +
-    "<div change-parent='changeParent()' class='tag-tree' on-select='onSelect()' tag='child'></div>\n" +
+    "<div change-parent='changeParent()' class='tag-tree' create-tag='createTag()' on-select='onSelect()' tag='child'></div>\n" +
     "</div>\n" +
     "</div>\n"
   );
@@ -33827,7 +33871,7 @@ angular.module('app').service('extensionManager', ExtensionManager);
     "<div class='header'>\n" +
     "<h3>Tags</h3>\n" +
     "</div>\n" +
-    "<div change-parent='changeParent' class='tag-tree master' on-select='selectTag' tag='masterTag'></div>\n"
+    "<div change-parent='changeParent' class='tag-tree master' create-tag='createTag' on-select='selectTag' tag='masterTag'></div>\n"
   );
 
 }]);

@@ -1,11 +1,14 @@
 @import 'reset';
 
+$font-size: 14px;
+
 body {
   background-color: #f6f6f6;
   font-family: sans-serif;
   margin: 0;
   padding: 15px;
   padding-top: 18px;
+  padding-right: 6px;
   font-family: -apple-system, BlinkMacSystemFont,
     "Segoe UI", "Roboto", "Oxygen",
     "Ubuntu", "Cantarell", "Fira Sans",
@@ -13,7 +16,7 @@ body {
   -webkit-font-smoothing: antialiased;
   min-height: 100%;
   height: 100%;
-  font-size: 20px;
+  font-size: $font-size;
 }
 
 .header {
@@ -31,37 +34,19 @@ $tag-height: 26px;
 
 
   cursor: pointer;
-  font-size: 14px;
+  font-size: $font-size;
 
   .self {
 
     min-width: 120px;
+    width: 100%;
 
     min-height: $tag-height;
 
     $tags-selected-color: #dbdbdb;
     $selected-text-color: black;
 
-    &.selected {
-      background-color: $tags-selected-color;
-      color: $selected-text-color;
-      > .title {
-        color: $selected-text-color;
-        cursor: text;
-      }
-    }
-
-    /* When a note is dragged over tag */
-    &.over {
-      background-color: $tags-selected-color;
-      color: $selected-text-color;
-      border: 2px dashed white;
-      > .title {
-        color: $selected-text-color;
-      }
-    }
-
-    &:hover:not(.selected) {
+    @mixin on-hover() {
       color: $selected-text-color;
       > .title {
         color: $selected-text-color;
@@ -77,10 +62,56 @@ $tag-height: 26px;
       }
     }
 
+    &.selected {
+      @include on-hover();
+    }
+
+    /* When a note is dragged over tag */
+    &.over {
+      background-color: $tags-selected-color;
+      color: $selected-text-color;
+      border: 2px dashed white;
+      > .title {
+        color: $selected-text-color;
+      }
+    }
+
+    &:hover:not(.selected) {
+      @include on-hover();
+    }
+
+    display: table;
 
     .info {
-    //  height: 20px;
-    //  position: relative;
+      min-height: 100%;
+      height: 100%;
+      position: relative;
+      display: table-cell;
+
+      &:hover {
+       .hover-menu {
+         display: inline-block;
+         float: right;
+         margin-left: 10px;
+       }
+      }
+
+      .hover-menu {
+        display: none;
+        padding-top: 4px;
+      }
+
+      .new-tag-form {
+      display: inline-block;
+      width: 70%;
+      input {
+        background-color: transparent;
+        border: 0;
+        outline: 0;
+        font-size: $font-size;
+        font-weight: 600;
+      }
+      }
 
      .circle {
        height: $tag-height;
@@ -108,38 +139,16 @@ $tag-height: 26px;
      }
 
      .title {
-       width: 80%;
        display: inline-block;
        background-color: transparent;
        font-weight: 600;
-      //  float: left;
        color: black;
        border: none;
        cursor: pointer;
-       text-overflow: ellipsis;
-       width: 80%;
+       text-overflow: ellipsis;;
        padding-top: 5px;
 
        pointer-events: none;
-     }
-   }
-
-
-    .menu {
-     font-size: 11px;
-
-     > .item {
-       margin-right: 2px;
-     }
-
-     opacity: 0.5;
-     font-weight: bold;
-     clear: both;
-     margin-top: 2px;
-     margin-bottom: 2px;
-
-     &:hover {
-       opacity: 1.0;
      }
    }
 

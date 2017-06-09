@@ -6,7 +6,7 @@ class ExtensionManager {
     this.timeout = $timeout;
 
     window.addEventListener("message", function(event){
-      console.log("nested tags: message received", event.data);
+      // console.log("nested tags: message received", event.data);
       this.handleMessage(event.data);
     }.bind(this), false);
   }
@@ -58,23 +58,24 @@ class ExtensionManager {
     sentMessage.callback = callback;
     this.sentMessages.push(sentMessage);
 
-    console.log("Folders is sending message:", message, window.parent);
-
     window.parent.postMessage(message, '*');
   }
 
   streamItems(callback) {
     this.postMessage("stream-items", {content_types: ["Tag"]}, function(data){
-      // console.log("Get items completion", data);
-      var tags = data.items["Tag"];
+      var tags = data.items;
       this.timeout(function(){
         callback(tags);
       })
     }.bind(this));
   }
 
+  createItem(item) {
+    this.postMessage("create-item", {item: this.jsonObjectForItem(item)});
+  }
+
   selectItem(item) {
-    this.postMessage("select-item", this.jsonObjectForItem(item));
+    this.postMessage("select-item", {item: this.jsonObjectForItem(item)});
   }
 
   clearSelection() {
@@ -127,7 +128,8 @@ class ExtensionManager {
       return uuid;
     }
   }
-
 }
+
+ExtensionManager.$$ngIsClass = true;
 
 angular.module('app').service('extensionManager', ExtensionManager);
