@@ -95,7 +95,13 @@ angular.module('app', [
 
     $scope.createTag = function(tag) {
       tag.content_type = "Tag";
-      tag.content.title = tag.parent.content.title + delimiter + tag.title;
+      var title;
+      if(tag.parent.master) {
+        title = tag.content.title;
+      } else {
+        title = tag.parent.content.title + delimiter + tag.content.title;
+      }
+      tag.content.title = title;
       tag.dummy = false;
       extensionManager.createItem(tag);
     }
@@ -128,8 +134,6 @@ angular.module('app', [
         }
       }
 
-      console.log("All tags", allTags);
-
       $scope.masterTag = {
         master: true,
         content: {
@@ -141,7 +145,14 @@ angular.module('app', [
       }
 
       $scope.resolveRawTags();
-    }.bind(this))
+    }.bind(this));
+
+    $scope.onTrashDrop = function(tagId) {
+      var tag = $scope.masterTag.rawTags.filter(function(tag){return tag.uuid === tagId})[0];
+      extensionManager.deleteItem(tag);
+      console.log("Trash drop", tag);
+    }
+
   }
 
 }
@@ -399,6 +410,10 @@ angular.module('app').directive('tagTree', () => new TagTree);
 
   selectItem(item) {
     this.postMessage("select-item", {item: this.jsonObjectForItem(item)});
+  }
+
+  deleteItem(item) {
+    this.postMessage("delete-item", {item: this.jsonObjectForItem(item)});
   }
 
   clearSelection() {

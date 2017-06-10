@@ -1,6 +1,8 @@
 @import 'reset';
 
 $font-size: 14px;
+$tags-selected-color: #dbdbdb;
+$selected-text-color: black;
 
 body {
   background-color: #f6f6f6;
@@ -42,9 +44,6 @@ $tag-height: 26px;
     width: 100%;
 
     min-height: $tag-height;
-
-    $tags-selected-color: #dbdbdb;
-    $selected-text-color: black;
 
     @mixin on-hover() {
       color: $selected-text-color;
@@ -157,6 +156,26 @@ $tag-height: 26px;
   .children {
 
   }
+}
 
+.trash {
+  position: absolute;
+  bottom: 10px;
+  text-align: left;
+  opacity: 0.3;
+  width: 100%;
 
+  &.over, &:hover {
+    border: 2px dashed white;
+    background-color: $tags-selected-color;
+    color: $selected-text-color;
+    height: 30px;
+    padding: 10px;
+    // padding-top: 15px;
+  }
+
+  &:hover {
+    height: auto;
+    padding: 10px 0;
+  }
 }

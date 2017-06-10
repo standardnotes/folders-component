@@ -90,7 +90,13 @@ class HomeCtrl {
 
     $scope.createTag = function(tag) {
       tag.content_type = "Tag";
-      tag.content.title = tag.parent.content.title + delimiter + tag.title;
+      var title;
+      if(tag.parent.master) {
+        title = tag.content.title;
+      } else {
+        title = tag.parent.content.title + delimiter + tag.content.title;
+      }
+      tag.content.title = title;
       tag.dummy = false;
       extensionManager.createItem(tag);
     }
@@ -123,8 +129,6 @@ class HomeCtrl {
         }
       }
 
-      console.log("All tags", allTags);
-
       $scope.masterTag = {
         master: true,
         content: {
@@ -136,7 +140,14 @@ class HomeCtrl {
       }
 
       $scope.resolveRawTags();
-    }.bind(this))
+    }.bind(this));
+
+    $scope.onTrashDrop = function(tagId) {
+      var tag = $scope.masterTag.rawTags.filter(function(tag){return tag.uuid === tagId})[0];
+      extensionManager.deleteItem(tag);
+      console.log("Trash drop", tag);
+    }
+
   }
 
 }

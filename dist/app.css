@@ -179,4 +179,23 @@ body {
   pointer-events: none;
 }
 
+.trash {
+  position: absolute;
+  bottom: 10px;
+  text-align: left;
+  opacity: 0.3;
+  width: 100%;
+}
+.trash.over, .trash:hover {
+  border: 2px dashed white;
+  background-color: #dbdbdb;
+  color: black;
+  height: 30px;
+  padding: 10px;
+}
+.trash:hover {
+  height: auto;
+  padding: 10px 0;
+}
+
 /*# sourceMappingURL=app.css.map */

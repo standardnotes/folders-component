@@ -7,7 +7,7 @@
       .hover-menu{"ng-if" => "!tag.dummy"}
         %button{"ng-click" => "addChild(tag); $event.stopPropagation();"} +
       .new-tag-form{"ng-if" => "tag.dummy"}
-        %input{"placeholder" => "", "autofocus" => "true", "ng-model" => "tag.title", "ng-keyup" => "$event.keyCode == 13 && saveNewTag(tag)"}
+        %input{"placeholder" => "", "autofocus" => "true", "ng-model" => "tag.content.title", "ng-keyup" => "$event.keyCode == 13 && saveNewTag(tag)"}
 
   %div{"ng-repeat" => "child in tag.children"}
-    .tag-tree{"tag" => "child", "change-parent" => "changeParent()", "on-select" => "onSelect()", "create-tag" => "createTag()"}
+    .tag-tree{"ng-if" => "!child.deleted", "tag" => "child", "change-parent" => "changeParent()", "on-select" => "onSelect()", "create-tag" => "createTag()"}

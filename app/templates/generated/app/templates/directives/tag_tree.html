@@ -9,11 +9,11 @@
 <button ng-click='addChild(tag); $event.stopPropagation();'>+</button>
 </div>
 <div class='new-tag-form' ng-if='tag.dummy'>
-<input autofocus='true' ng-keyup='$event.keyCode == 13 &amp;&amp; saveNewTag(tag)' ng-model='tag.title' placeholder=''>
+<input autofocus='true' ng-keyup='$event.keyCode == 13 &amp;&amp; saveNewTag(tag)' ng-model='tag.content.title' placeholder=''>
 </div>
 </div>
 </div>
 <div ng-repeat='child in tag.children'>
-<div change-parent='changeParent()' class='tag-tree' create-tag='createTag()' on-select='onSelect()' tag='child'></div>
+<div change-parent='changeParent()' class='tag-tree' create-tag='createTag()' ng-if='!child.deleted' on-select='onSelect()' tag='child'></div>
 </div>
 </div>

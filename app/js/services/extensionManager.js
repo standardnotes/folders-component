@@ -78,6 +78,10 @@ class ExtensionManager {
     this.postMessage("select-item", {item: this.jsonObjectForItem(item)});
   }
 
+  deleteItem(item) {
+    this.postMessage("delete-item", {item: this.jsonObjectForItem(item)});
+  }
+
   clearSelection() {
     this.postMessage("clear-selection", {content_type: "Tag"});
   }

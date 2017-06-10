@@ -33466,7 +33466,13 @@ angular.module('app', [
 
     $scope.createTag = function(tag) {
       tag.content_type = "Tag";
-      tag.content.title = tag.parent.content.title + delimiter + tag.title;
+      var title;
+      if(tag.parent.master) {
+        title = tag.content.title;
+      } else {
+        title = tag.parent.content.title + delimiter + tag.content.title;
+      }
+      tag.content.title = title;
       tag.dummy = false;
       extensionManager.createItem(tag);
     }
@@ -33499,8 +33505,6 @@ angular.module('app', [
         }
       }
 
-      console.log("All tags", allTags);
-
       $scope.masterTag = {
         master: true,
         content: {
@@ -33512,7 +33516,14 @@ angular.module('app', [
       }
 
       $scope.resolveRawTags();
-    }.bind(this))
+    }.bind(this));
+
+    $scope.onTrashDrop = function(tagId) {
+      var tag = $scope.masterTag.rawTags.filter(function(tag){return tag.uuid === tagId})[0];
+      extensionManager.deleteItem(tag);
+      console.log("Trash drop", tag);
+    }
+
   }
 
 }
@@ -33772,6 +33783,10 @@ angular.module('app').directive('tagTree', () => new TagTree);
     this.postMessage("select-item", {item: this.jsonObjectForItem(item)});
   }
 
+  deleteItem(item) {
+    this.postMessage("delete-item", {item: this.jsonObjectForItem(item)});
+  }
+
   clearSelection() {
     this.postMessage("clear-selection", {content_type: "Tag"});
   }
@@ -33856,12 +33871,12 @@ angular.module('app').service('extensionManager', ExtensionManager);
     "<button ng-click='addChild(tag); $event.stopPropagation();'>+</button>\n" +
     "</div>\n" +
     "<div class='new-tag-form' ng-if='tag.dummy'>\n" +
-    "<input autofocus='true' ng-keyup='$event.keyCode == 13 &amp;&amp; saveNewTag(tag)' ng-model='tag.title' placeholder=''>\n" +
+    "<input autofocus='true' ng-keyup='$event.keyCode == 13 &amp;&amp; saveNewTag(tag)' ng-model='tag.content.title' placeholder=''>\n" +
     "</div>\n" +
     "</div>\n" +
     "</div>\n" +
     "<div ng-repeat='child in tag.children'>\n" +
-    "<div change-parent='changeParent()' class='tag-tree' create-tag='createTag()' on-select='onSelect()' tag='child'></div>\n" +
+    "<div change-parent='changeParent()' class='tag-tree' create-tag='createTag()' ng-if='!child.deleted' on-select='onSelect()' tag='child'></div>\n" +
     "</div>\n" +
     "</div>\n"
   );
@@ -33871,7 +33886,10 @@ angular.module('app').service('extensionManager', ExtensionManager);
     "<div class='header'>\n" +
     "<h3>Tags</h3>\n" +
     "</div>\n" +
-    "<div change-parent='changeParent' class='tag-tree master' create-tag='createTag' on-select='selectTag' tag='masterTag'></div>\n"
+    "<div change-parent='changeParent' class='tag-tree master' create-tag='createTag' on-select='selectTag' tag='masterTag'></div>\n" +
+    "<div class='trash' draggable='true' drop='onTrashDrop' is-draggable='false'>\n" +
+    "<h4>Trash</h4>\n" +
+    "</div>\n"
   );
 
 }]);

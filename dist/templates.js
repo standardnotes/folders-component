@@ -27,12 +27,12 @@ angular.module('app').run(['$templateCache', function($templateCache) {
     "<button ng-click='addChild(tag); $event.stopPropagation();'>+</button>\n" +
     "</div>\n" +
     "<div class='new-tag-form' ng-if='tag.dummy'>\n" +
-    "<input autofocus='true' ng-keyup='$event.keyCode == 13 &amp;&amp; saveNewTag(tag)' ng-model='tag.title' placeholder=''>\n" +
+    "<input autofocus='true' ng-keyup='$event.keyCode == 13 &amp;&amp; saveNewTag(tag)' ng-model='tag.content.title' placeholder=''>\n" +
     "</div>\n" +
     "</div>\n" +
     "</div>\n" +
     "<div ng-repeat='child in tag.children'>\n" +
-    "<div change-parent='changeParent()' class='tag-tree' create-tag='createTag()' on-select='onSelect()' tag='child'></div>\n" +
+    "<div change-parent='changeParent()' class='tag-tree' create-tag='createTag()' ng-if='!child.deleted' on-select='onSelect()' tag='child'></div>\n" +
     "</div>\n" +
     "</div>\n"
   );
@@ -42,7 +42,10 @@ angular.module('app').run(['$templateCache', function($templateCache) {
     "<div class='header'>\n" +
     "<h3>Tags</h3>\n" +
     "</div>\n" +
-    "<div change-parent='changeParent' class='tag-tree master' create-tag='createTag' on-select='selectTag' tag='masterTag'></div>\n"
+    "<div change-parent='changeParent' class='tag-tree master' create-tag='createTag' on-select='selectTag' tag='masterTag'></div>\n" +
+    "<div class='trash' draggable='true' drop='onTrashDrop' is-draggable='false'>\n" +
+    "<h4>Trash</h4>\n" +
+    "</div>\n"
   );
 
 }]);
