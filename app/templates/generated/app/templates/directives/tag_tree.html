@@ -1,7 +1,7 @@
 <div ng-if='tag'>
 <div class='self' draggable='true' drop='onDrop' is-draggable='!tag.master' ng-class='{&#39;selected&#39; : tag.selected}' ng-click='selectTag()' tag-id='tag.uuid'>
-<div class='info'>
-<div class='circle' ng-class='circleClassForTag(tag)'></div>
+<div class='info' ng-class='&#39;level-&#39; + generationForTag(tag)'>
+<div class='circle'></div>
 <div class='title' ng-if='!tag.dummy'>
 {{tag.displayTitle}}
 </div>

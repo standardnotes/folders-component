@@ -1,0 +1,17 @@
+{
+  "name": "TagsAutocomplete",
+  "description": "",
+  "main": "",
+  "license": "MIT",
+  "homepage": "https://github.com/sn-extensions/folders-component",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "components-api": "sn-components-api#^0.0.4"
+  }
+}

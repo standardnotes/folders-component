@@ -42,15 +42,14 @@ class TagTree {
       $scope.createTag()(tag);
     }
 
-    $scope.circleClassForTag = function(tag) {
+    $scope.generationForTag = function(tag) {
       var generation = 0;
       var parent = tag.parent;
       while(parent) {
         generation++;
         parent = parent.parent;
       }
-
-      return "level-" + generation;
+      return generation;
     }
 
   }

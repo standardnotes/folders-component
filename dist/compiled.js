@@ -33369,13 +33369,176 @@ $provide.value("$locale", {
 
 })(window);
 
-!window.angular.$$csp().noInlineStyle && window.angular.element(document.head).prepend('<style type="text/css">@charset "UTF-8";[ng\\:cloak],[ng-cloak],[data-ng-cloak],[x-ng-cloak],.ng-cloak,.x-ng-cloak,.ng-hide:not(.ng-hide-animate){display:none !important;}ng\\:form{display:block;}.ng-animate-shim{visibility:hidden;}.ng-anchor{position:absolute;}</style>');;'use strict';
+!window.angular.$$csp().noInlineStyle && window.angular.element(document.head).prepend('<style type="text/css">@charset "UTF-8";[ng\\:cloak],[ng-cloak],[data-ng-cloak],[x-ng-cloak],.ng-cloak,.x-ng-cloak,.ng-hide:not(.ng-hide-animate){display:none !important;}ng\\:form{display:block;}.ng-animate-shim{visibility:hidden;}.ng-anchor{position:absolute;}</style>');;(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+class ComponentManager {
+
+  constructor(loggingEnabled) {
+    this.sentMessages = [];
+    this.messageQueue = [];
+
+    window.addEventListener("message", function (event) {
+      if (loggingEnabled) {
+        console.log("Components API Message received:", event.data);
+      }
+      this.handleMessage(event.data);
+    }.bind(this), false);
+  }
+
+  handleMessage(payload) {
+    if (payload.action === "component-registered") {
+      this.sessionKey = payload.sessionKey;
+      this.onReady();
+    } else if (payload.original) {
+      // get callback from queue
+      var originalMessage = this.sentMessages.filter(function (message) {
+        return message.messageId === payload.original.messageId;
+      })[0];
+
+      if (originalMessage.callback) {
+        originalMessage.callback(payload.data);
+      }
+    }
+  }
+
+  onReady() {
+    for (var message of this.messageQueue) {
+      this.postMessage(message.action, message.data, message.callback);
+    }
+    this.messageQueue = [];
+  }
+
+  postMessage(action, data, callback) {
+    if (!this.sessionKey) {
+      this.messageQueue.push({
+        action: action,
+        data: data,
+        callback: callback
+      });
+      return;
+    }
+
+    var message = {
+      action: action,
+      data: data,
+      messageId: this.generateUUID(),
+      sessionKey: this.sessionKey,
+      api: "component"
+    };
+
+    var sentMessage = JSON.parse(JSON.stringify(message));
+    sentMessage.callback = callback;
+    this.sentMessages.push(sentMessage);
+
+    window.parent.postMessage(message, '*');
+  }
+
+  setSize(type, width, height) {
+    this.postMessage("set-size", { type: type, width: width, height: height }, function (data) {});
+  }
+
+  streamItems(callback) {
+    this.postMessage("stream-items", { content_types: ["Tag"] }, function (data) {
+      var tags = data.items;
+      callback(tags);
+    }.bind(this));
+  }
+
+  streamReferences(callback) {
+    this.postMessage("stream-references", {}, function (data) {
+      var references = data.references;
+      var tagRefs = references.filter(function (ref) {
+        return ref.content_type === "Tag";
+      });
+      callback(tagRefs);
+    }.bind(this));
+  }
+
+  selectItem(item) {
+    this.postMessage("select-item", { item: this.jsonObjectForItem(item) });
+  }
+
+  createItem(item) {
+    this.postMessage("create-item", { item: this.jsonObjectForItem(item) }, function (data) {
+      var item = data.item;
+      this.associateItem(item);
+    }.bind(this));
+  }
+
+  associateItem(item) {
+    this.postMessage("associate-item", { item: this.jsonObjectForItem(item) });
+  }
+
+  deassociateItem(item) {
+    this.postMessage("deassociate-item", { item: this.jsonObjectForItem(item) });
+  }
+
+  clearSelection() {
+    this.postMessage("clear-selection", { content_type: "Tag" });
+  }
+
+  deleteItem(item) {
+    this.postMessage("delete-item", { item: this.jsonObjectForItem(item) });
+  }
+
+  saveItem(item) {
+    this.saveItems[item];
+  }
+
+  saveItems(items) {
+    items = items.map(function (item) {
+      return this.jsonObjectForItem(item);
+    }.bind(this));
+
+    this.postMessage("save-items", { items: items }, function (data) {});
+  }
+
+  jsonObjectForItem(item) {
+    var copy = Object.assign({}, item);
+    copy.children = null;
+    copy.parent = null;
+    return copy;
+  }
+
+  generateUUID() {
+    var crypto = window.crypto || window.msCrypto;
+    if (crypto) {
+      var buf = new Uint32Array(4);
+      crypto.getRandomValues(buf);
+      var idx = -1;
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        idx++;
+        var r = buf[idx >> 3] >> idx % 8 * 4 & 15;
+        var v = c == 'x' ? r : r & 0x3 | 0x8;
+        return v.toString(16);
+      });
+    } else {
+      var d = new Date().getTime();
+      if (window.performance && typeof window.performance.now === "function") {
+        d += performance.now(); //use high-precision timer if available
+      }
+      var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        var r = (d + Math.random() * 16) % 16 | 0;
+        d = Math.floor(d / 16);
+        return (c == 'x' ? r : r & 0x3 | 0x8).toString(16);
+      });
+      return uuid;
+    }
+  }
+}
+
+window.ComponentManager = ComponentManager;
+
+
+},{}]},{},[1]);
+;'use strict';
 
 angular.module('app', [
 
 ])
 ;class HomeCtrl {
-  constructor($rootScope, $scope, $timeout, extensionManager) {
+  constructor($rootScope, $scope, $timeout) {
+
+    let componentManager = new window.ComponentManager();
 
     let delimiter = ".";
 
@@ -33461,7 +33624,7 @@ angular.module('app', [
 
       $scope.resolveRawTags();
 
-      extensionManager.saveItems(needsSave);
+      componentManager.saveItems(needsSave);
     }
 
     $scope.createTag = function(tag) {
@@ -33474,14 +33637,14 @@ angular.module('app', [
       }
       tag.content.title = title;
       tag.dummy = false;
-      extensionManager.createItem(tag);
+      componentManager.createItem(tag);
     }
 
     $scope.selectTag = function(tag) {
       if(tag.master) {
-        extensionManager.clearSelection();
+        componentManager.clearSelection();
       } else {
-        extensionManager.selectItem(tag);
+        componentManager.selectItem(tag);
       }
       if($scope.selectedTag) {
         $scope.selectedTag.selected = false;
@@ -33490,40 +33653,41 @@ angular.module('app', [
       tag.selected = true;
     }
 
-    extensionManager.streamItems(function(newTags) {
-      console.log("New stream data:", newTags);
+    componentManager.streamItems(function(newTags) {
+      $timeout(function(){
+        console.log("New stream data:", newTags);
 
-      var allTags = $scope.masterTag ? $scope.masterTag.rawTags : [];
-      for(var tag of newTags) {
-        var existing = allTags.filter(function(tagCandidate){
-          return tagCandidate.uuid === tag.uuid;
-        })[0];
-        if(existing) {
-          Object.assign(existing, tag);
-        } else {
-          allTags.push(tag);
+        var allTags = $scope.masterTag ? $scope.masterTag.rawTags : [];
+        for(var tag of newTags) {
+          var existing = allTags.filter(function(tagCandidate){
+            return tagCandidate.uuid === tag.uuid;
+          })[0];
+          if(existing) {
+            Object.assign(existing, tag);
+          } else {
+            allTags.push(tag);
+          }
         }
-      }
 
-      $scope.masterTag = {
-        master: true,
-        content: {
-          title: ""
-        },
-        displayTitle: "All",
-        rawTags: allTags,
-        uuid: "0"
-      }
+        $scope.masterTag = {
+          master: true,
+          content: {
+            title: ""
+          },
+          displayTitle: "All",
+          rawTags: allTags,
+          uuid: "0"
+        }
 
-      $scope.resolveRawTags();
+        $scope.resolveRawTags();
+      })
     }.bind(this));
 
     $scope.onTrashDrop = function(tagId) {
       var tag = $scope.masterTag.rawTags.filter(function(tag){return tag.uuid === tagId})[0];
-      extensionManager.deleteItem(tag);
+      componentManager.deleteItem(tag);
       console.log("Trash drop", tag);
     }
-
   }
 
 }
@@ -33620,6 +33784,7 @@ angular.module('app').controller('HomeCtrl', HomeCtrl);
       el.addEventListener(
         'drop',
         function(e) {
+
           // Stops some browsers from redirecting.
           counter = 0;
           if (e.stopPropagation) e.stopPropagation();
@@ -33686,15 +33851,14 @@ angular.module('app').controller('HomeCtrl', HomeCtrl);
       $scope.createTag()(tag);
     }
 
-    $scope.circleClassForTag = function(tag) {
+    $scope.generationForTag = function(tag) {
       var generation = 0;
       var parent = tag.parent;
       while(parent) {
         generation++;
         parent = parent.parent;
       }
-
-      return "level-" + generation;
+      return generation;
     }
 
   }
@@ -33703,145 +33867,6 @@ angular.module('app').controller('HomeCtrl', HomeCtrl);
 TagTree.$$ngIsClass = true;
 
 angular.module('app').directive('tagTree', () => new TagTree);
-;class ExtensionManager {
-
-  constructor($timeout) {
-    this.sentMessages = [];
-    this.messageQueue = [];
-    this.timeout = $timeout;
-
-    window.addEventListener("message", function(event){
-      // console.log("nested tags: message received", event.data);
-      this.handleMessage(event.data);
-    }.bind(this), false);
-  }
-
-  handleMessage(payload) {
-    if(payload.action === "component-registered") {
-      this.sessionKey = payload.sessionKey;
-      this.onReady();
-    }
-
-    else if(payload.original) {
-      // get callback from queue
-      var originalMessage = this.sentMessages.filter(function(message){
-        return message.messageId === payload.original.messageId;
-      })[0];
-
-      if(originalMessage.callback) {
-        originalMessage.callback(payload.data);
-      }
-    }
-  }
-
-  onReady() {
-    for(var message of this.messageQueue) {
-      this.postMessage(message.action, message.data, message.callback);
-    }
-    this.messageQueue = [];
-  }
-
-  postMessage(action, data, callback) {
-    if(!this.sessionKey) {
-      this.messageQueue.push({
-        action: action,
-        data: data,
-        callback: callback
-      });
-      return;
-    }
-
-    var message = {
-      action: action,
-      data: data,
-      messageId: this.generateUUID(),
-      sessionKey: this.sessionKey,
-      api: "component"
-    }
-
-    var sentMessage = JSON.parse(JSON.stringify(message));
-    sentMessage.callback = callback;
-    this.sentMessages.push(sentMessage);
-
-    window.parent.postMessage(message, '*');
-  }
-
-  streamItems(callback) {
-    this.postMessage("stream-items", {content_types: ["Tag"]}, function(data){
-      var tags = data.items;
-      this.timeout(function(){
-        callback(tags);
-      })
-    }.bind(this));
-  }
-
-  createItem(item) {
-    this.postMessage("create-item", {item: this.jsonObjectForItem(item)});
-  }
-
-  selectItem(item) {
-    this.postMessage("select-item", {item: this.jsonObjectForItem(item)});
-  }
-
-  deleteItem(item) {
-    this.postMessage("delete-item", {item: this.jsonObjectForItem(item)});
-  }
-
-  clearSelection() {
-    this.postMessage("clear-selection", {content_type: "Tag"});
-  }
-
-  saveItem(item) {
-    this.saveItems[item];
-  }
-
-  saveItems(items) {
-    items = items.map(function(item) {
-      return this.jsonObjectForItem(item);
-    }.bind(this));
-
-    this.postMessage("save-items", {items: items}, function(data){
-      // console.log("Successfully saved items");
-    });
-  }
-
-  jsonObjectForItem(item) {
-    var copy = Object.assign({}, item);
-    copy.children = null;
-    copy.parent = null;
-    return copy;
-  }
-
-  generateUUID() {
-    var crypto = window.crypto || window.msCrypto;
-    if(crypto) {
-      var buf = new Uint32Array(4);
-      crypto.getRandomValues(buf);
-      var idx = -1;
-      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-          idx++;
-          var r = (buf[idx>>3] >> ((idx%8)*4))&15;
-          var v = c == 'x' ? r : (r&0x3|0x8);
-          return v.toString(16);
-      });
-    } else {
-      var d = new Date().getTime();
-      if(window.performance && typeof window.performance.now === "function"){
-        d += performance.now(); //use high-precision timer if available
-      }
-      var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-        var r = (d + Math.random()*16)%16 | 0;
-        d = Math.floor(d/16);
-        return (c=='x' ? r : (r&0x3|0x8)).toString(16);
-      });
-      return uuid;
-    }
-  }
-}
-
-ExtensionManager.$$ngIsClass = true;
-
-angular.module('app').service('extensionManager', ExtensionManager);
 ;angular.module('app').run(['$templateCache', function($templateCache) {
   'use strict';
 
@@ -33862,8 +33887,8 @@ angular.module('app').service('extensionManager', ExtensionManager);
   $templateCache.put('directives/tag_tree.html',
     "<div ng-if='tag'>\n" +
     "<div class='self' draggable='true' drop='onDrop' is-draggable='!tag.master' ng-class='{&#39;selected&#39; : tag.selected}' ng-click='selectTag()' tag-id='tag.uuid'>\n" +
-    "<div class='info'>\n" +
-    "<div class='circle' ng-class='circleClassForTag(tag)'></div>\n" +
+    "<div class='info' ng-class='&#39;level-&#39; + generationForTag(tag)'>\n" +
+    "<div class='circle'></div>\n" +
     "<div class='title' ng-if='!tag.dummy'>\n" +
     "{{tag.displayTitle}}\n" +
     "</div>\n" +
@@ -33884,11 +33909,11 @@ angular.module('app').service('extensionManager', ExtensionManager);
 
   $templateCache.put('home.html',
     "<div class='header'>\n" +
-    "<h3>Tags</h3>\n" +
+    "<h3>Folders</h3>\n" +
     "</div>\n" +
     "<div change-parent='changeParent' class='tag-tree master' create-tag='createTag' on-select='selectTag' tag='masterTag'></div>\n" +
     "<div class='trash' draggable='true' drop='onTrashDrop' is-draggable='false'>\n" +
-    "<h4>Trash</h4>\n" +
+    "<p>Trash</p>\n" +
     "</div>\n"
   );
 

@@ -101,46 +101,69 @@ $tag-height: 26px;
       }
 
       .new-tag-form {
-      display: inline-block;
-      width: 70%;
-      input {
-        background-color: transparent;
-        border: 0;
-        outline: 0;
-        font-size: $font-size;
-        font-weight: 600;
+        display: inline-block;
+        width: 70%;
+        input {
+          background-color: transparent;
+          border: 0;
+          outline: 0;
+          font-size: $font-size;
+          font-weight: 600;
+        }
       }
+
+      $layers: 4;
+
+      @mixin circle-classes {
+        @for $i from 0 through $layers {
+          &.level-#{$i} {
+            .circle {
+              background: rgba(blue, 1 - ($i/$layers));
+            }
+          }
+        }
       }
+
+      &.level-1 {
+        .title {
+          font-weight: bold;
+          border-bottom: 1px solid black;
+        }
+      }
+
+      @include circle-classes;
 
      .circle {
        height: $tag-height;
        display: inline-block;
        height: 10px;
        width: 10px;
-       border-radius: 50%;
+       border-radius: 20%;
        margin-right: 4px;
+       border: 1px solid white;
 
-       &.level-0 {
-         background: green;
-       }
-       &.level-1 {
-         background: purple;
-       }
-       &.level-2 {
-         background: yellow;
-       }
-       &.level-3 {
-         background: red;
-       }
-       &.level-4 {
-         background: #5e52e8;
-       }
+
+      //  &.level-0 {
+      //    background: green;
+      //  }
+      //  &.level-1 {
+      //    background: purple;
+      //  }
+      //  &.level-2 {
+      //    background: yellow;
+      //  }
+      //  &.level-3 {
+      //    background: red;
+      //  }
+      //  &.level-4 {
+      //    background: #5e52e8;
+      //  }
      }
 
      .title {
        display: inline-block;
        background-color: transparent;
-       font-weight: 600;
+       font-weight: 200;
        color: black;
        border: none;
        cursor: pointer;
@@ -164,6 +187,7 @@ $tag-height: 26px;
   text-align: left;
   opacity: 0.3;
   width: 100%;
+  font-size: 12px;
 
   &.over, &:hover {
     border: 2px dashed white;

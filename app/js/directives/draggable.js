@@ -86,6 +86,7 @@ angular
       el.addEventListener(
         'drop',
         function(e) {
+
           // Stops some browsers from redirecting.
           counter = 0;
           if (e.stopPropagation) e.stopPropagation();

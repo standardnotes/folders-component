@@ -1,5 +1,7 @@
 class HomeCtrl {
-  constructor($rootScope, $scope, $timeout, extensionManager) {
+  constructor($rootScope, $scope, $timeout) {
+
+    let componentManager = new window.ComponentManager();
 
     let delimiter = ".";
 
@@ -85,7 +87,7 @@ class HomeCtrl {
 
       $scope.resolveRawTags();
 
-      extensionManager.saveItems(needsSave);
+      componentManager.saveItems(needsSave);
     }
 
     $scope.createTag = function(tag) {
@@ -98,14 +100,14 @@ class HomeCtrl {
       }
       tag.content.title = title;
       tag.dummy = false;
-      extensionManager.createItem(tag);
+      componentManager.createItem(tag);
     }
 
     $scope.selectTag = function(tag) {
       if(tag.master) {
-        extensionManager.clearSelection();
+        componentManager.clearSelection();
       } else {
-        extensionManager.selectItem(tag);
+        componentManager.selectItem(tag);
       }
       if($scope.selectedTag) {
         $scope.selectedTag.selected = false;
@@ -114,40 +116,41 @@ class HomeCtrl {
       tag.selected = true;
     }
 
-    extensionManager.streamItems(function(newTags) {
-      console.log("New stream data:", newTags);
+    componentManager.streamItems(function(newTags) {
+      $timeout(function(){
+        console.log("New stream data:", newTags);
 
-      var allTags = $scope.masterTag ? $scope.masterTag.rawTags : [];
-      for(var tag of newTags) {
-        var existing = allTags.filter(function(tagCandidate){
-          return tagCandidate.uuid === tag.uuid;
-        })[0];
-        if(existing) {
-          Object.assign(existing, tag);
-        } else {
-          allTags.push(tag);
+        var allTags = $scope.masterTag ? $scope.masterTag.rawTags : [];
+        for(var tag of newTags) {
+          var existing = allTags.filter(function(tagCandidate){
+            return tagCandidate.uuid === tag.uuid;
+          })[0];
+          if(existing) {
+            Object.assign(existing, tag);
+          } else {
+            allTags.push(tag);
+          }
         }
-      }
 
-      $scope.masterTag = {
-        master: true,
-        content: {
-          title: ""
-        },
-        displayTitle: "All",
-        rawTags: allTags,
-        uuid: "0"
-      }
+        $scope.masterTag = {
+          master: true,
+          content: {
+            title: ""
+          },
+          displayTitle: "All",
+          rawTags: allTags,
+          uuid: "0"
+        }
 
-      $scope.resolveRawTags();
+        $scope.resolveRawTags();
+      })
     }.bind(this));
 
     $scope.onTrashDrop = function(tagId) {
       var tag = $scope.masterTag.rawTags.filter(function(tag){return tag.uuid === tagId})[0];
-      extensionManager.deleteItem(tag);
+      componentManager.deleteItem(tag);
       console.log("Trash drop", tag);
     }
-
   }
 
 }
