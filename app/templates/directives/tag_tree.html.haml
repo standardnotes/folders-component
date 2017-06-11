@@ -1,6 +1,6 @@
 %div{"ng-if" => "tag"}
   .self{"draggable" => "true", "is-draggable" => "!tag.master", "drop" => "onDrop", "tag-id" => "tag.uuid", "ng-click" => "selectTag()", "ng-class" => "{'selected' : tag.selected}"}
-    .info{"ng-class" => "'level-' + generationForTag(tag)"}
+    .info.body-text-color{"ng-class" => "'level-' + generationForTag(tag)"}
       .circle
       .title{"ng-if" => "!tag.dummy"}
         {{tag.displayTitle}}

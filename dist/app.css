@@ -47,6 +47,10 @@ table {
   border-spacing: 0;
 }
 
+:root {
+  --body-text-color: black;
+}
+
 body {
   background-color: #f6f6f6;
   font-family: sans-serif;
@@ -146,7 +150,7 @@ body {
 }
 .tag-tree .self .info.level-1 .title {
   font-weight: bold;
-  border-bottom: 1px solid black;
+  border-bottom: 1px solid var(--body-text-color);
 }
 .tag-tree .self .info.level-0 .circle {
   background: blue;
@@ -176,7 +180,6 @@ body {
   display: inline-block;
   background-color: transparent;
   font-weight: 200;
-  color: black;
   border: none;
   cursor: pointer;
   text-overflow: ellipsis;

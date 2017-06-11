@@ -18,7 +18,7 @@ angular.module('app').run(['$templateCache', function($templateCache) {
   $templateCache.put('directives/tag_tree.html',
     "<div ng-if='tag'>\n" +
     "<div class='self' draggable='true' drop='onDrop' is-draggable='!tag.master' ng-class='{&#39;selected&#39; : tag.selected}' ng-click='selectTag()' tag-id='tag.uuid'>\n" +
-    "<div class='info' ng-class='&#39;level-&#39; + generationForTag(tag)'>\n" +
+    "<div class='info body-text-color' ng-class='&#39;level-&#39; + generationForTag(tag)'>\n" +
     "<div class='circle'></div>\n" +
     "<div class='title' ng-if='!tag.dummy'>\n" +
     "{{tag.displayTitle}}\n" +
@@ -40,7 +40,7 @@ angular.module('app').run(['$templateCache', function($templateCache) {
 
   $templateCache.put('home.html',
     "<div class='header'>\n" +
-    "<h3>Folders</h3>\n" +
+    "<h3 class='body-text-color'>Folders</h3>\n" +
     "</div>\n" +
     "<div change-parent='changeParent' class='tag-tree master' create-tag='createTag' on-select='selectTag' tag='masterTag'></div>\n" +
     "<div class='trash' draggable='true' drop='onTrashDrop' is-draggable='false'>\n" +

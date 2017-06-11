@@ -33375,6 +33375,7 @@ class ComponentManager {
   constructor(loggingEnabled) {
     this.sentMessages = [];
     this.messageQueue = [];
+    this.loggingEnabled = loggingEnabled;
 
     window.addEventListener("message", function (event) {
       if (loggingEnabled) {
@@ -33388,6 +33389,8 @@ class ComponentManager {
     if (payload.action === "component-registered") {
       this.sessionKey = payload.sessionKey;
       this.onReady();
+    } else if (payload.action === "themes") {
+      this.activateThemes(payload.data.themes);
     } else if (payload.original) {
       // get callback from queue
       var originalMessage = this.sentMessages.filter(function (message) {
@@ -33429,6 +33432,10 @@ class ComponentManager {
     sentMessage.callback = callback;
     this.sentMessages.push(sentMessage);
 
+    if (this.loggingEnabled) {
+      console.log("Posting message:", message);
+    }
+
     window.parent.postMessage(message, '*');
   }
 
@@ -33443,13 +33450,10 @@ class ComponentManager {
     }.bind(this));
   }
 
-  streamReferences(callback) {
-    this.postMessage("stream-references", {}, function (data) {
-      var references = data.references;
-      var tagRefs = references.filter(function (ref) {
-        return ref.content_type === "Tag";
-      });
-      callback(tagRefs);
+  streamContextItem(callback) {
+    this.postMessage("stream-context-item", null, function (data) {
+      var item = data.item;
+      callback(item);
     }.bind(this));
   }
 
@@ -33498,6 +33502,47 @@ class ComponentManager {
     copy.parent = null;
     return copy;
   }
+
+  /* Themes */
+
+  activateThemes(urls) {
+    this.deactivateAllCustomThemes();
+
+    if (this.loggingEnabled) {
+      console.log("Activating themes:", urls);
+    }
+
+    if (!urls) {
+      return;
+    }
+
+    for (var url of urls) {
+      if (!url) {
+        continue;
+      }
+
+      var link = document.createElement("link");
+      link.href = url;
+      link.type = "text/css";
+      link.rel = "stylesheet";
+      link.media = "screen,print";
+      link.className = "custom-theme";
+      document.getElementsByTagName("head")[0].appendChild(link);
+    }
+  }
+
+  deactivateAllCustomThemes() {
+    var elements = document.getElementsByClassName("custom-theme");
+
+    [].forEach.call(elements, function (element) {
+      if (element) {
+        element.disabled = true;
+        element.parentNode.removeChild(element);
+      }
+    });
+  }
+
+  /* Utilities */
 
   generateUUID() {
     var crypto = window.crypto || window.msCrypto;
@@ -33887,7 +33932,7 @@ angular.module('app').directive('tagTree', () => new TagTree);
   $templateCache.put('directives/tag_tree.html',
     "<div ng-if='tag'>\n" +
     "<div class='self' draggable='true' drop='onDrop' is-draggable='!tag.master' ng-class='{&#39;selected&#39; : tag.selected}' ng-click='selectTag()' tag-id='tag.uuid'>\n" +
-    "<div class='info' ng-class='&#39;level-&#39; + generationForTag(tag)'>\n" +
+    "<div class='info body-text-color' ng-class='&#39;level-&#39; + generationForTag(tag)'>\n" +
     "<div class='circle'></div>\n" +
     "<div class='title' ng-if='!tag.dummy'>\n" +
     "{{tag.displayTitle}}\n" +
@@ -33909,7 +33954,7 @@ angular.module('app').directive('tagTree', () => new TagTree);
 
   $templateCache.put('home.html',
     "<div class='header'>\n" +
-    "<h3>Folders</h3>\n" +
+    "<h3 class='body-text-color'>Folders</h3>\n" +
     "</div>\n" +
     "<div change-parent='changeParent' class='tag-tree master' create-tag='createTag' on-select='selectTag' tag='masterTag'></div>\n" +
     "<div class='trash' draggable='true' drop='onTrashDrop' is-draggable='false'>\n" +
