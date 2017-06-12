@@ -12,6 +12,6 @@
     "tests"
   ],
   "dependencies": {
-    "components-api": "sn-components-api#^0.0.7"
+    "components-api": "sn-components-api#^0.0.9"
   }
 }

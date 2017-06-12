@@ -6,7 +6,15 @@ angular.module('app', [
 ;class HomeCtrl {
   constructor($rootScope, $scope, $timeout) {
 
-    let componentManager = new window.ComponentManager();
+    var permissions = [
+      {
+        name: "stream-items",
+        content_types: ["Tag", 'Note']
+      }
+    ]
+    let componentManager = new window.ComponentManager(permissions, function(){
+      // on ready
+    });
 
     let delimiter = ".";
 
