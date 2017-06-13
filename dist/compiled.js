@@ -34061,10 +34061,12 @@ angular.module('app').directive('tagTree', () => new TagTree);
 
 
   $templateCache.put('home.html',
+    "<div class='content'>\n" +
     "<div class='header'>\n" +
     "<h3 class='body-text-color'>Folders</h3>\n" +
     "</div>\n" +
     "<div change-parent='changeParent' class='tag-tree master' create-tag='createTag' on-select='selectTag' save-tags='saveTags' tag='masterTag'></div>\n" +
+    "</div>\n" +
     "<div class='trash' draggable='true' drop='onTrashDrop' is-draggable='false'>\n" +
     "<p>Trash</p>\n" +
     "</div>\n"

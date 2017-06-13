@@ -51,26 +51,40 @@ table {
   --body-text-color: black;
 }
 
+html {
+  width: 100%;
+  background-color: transparent;
+  max-width: 100%;
+}
+
 body {
   background-color: #f6f6f6;
+  background-color: transparent;
   font-family: sans-serif;
   margin: 0;
-  padding: 15px;
-  padding-top: 18px;
-  padding-right: 6px;
+  padding: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
   min-height: 100%;
   height: 100%;
   font-size: 14px;
   color: black;
+  max-width: 100%;
 }
 
 .header {
   margin-bottom: 15px;
 }
 
+.content {
+  overflow-x: scroll;
+  padding: 15px;
+  padding-top: 18px;
+  padding-right: 6px;
+}
+
 .tag-tree {
+  overflow-x: scroll;
   padding-left: 18px;
   cursor: pointer;
   font-size: 14px;
@@ -80,7 +94,6 @@ body {
 }
 .tag-tree .self {
   min-width: 120px;
-  width: 100%;
   min-height: 26px;
   /* When a note is dragged over tag */
   display: table;
@@ -197,7 +210,7 @@ body {
 .trash {
   position: absolute;
   bottom: 10px;
-  text-align: left;
+  text-align: center;
   opacity: 0.3;
   width: 100%;
   font-size: 12px;
@@ -207,7 +220,7 @@ body {
   background-color: #dbdbdb;
   color: black;
   height: 30px;
-  padding: 10px;
+  padding: 10px 0;
 }
 .trash:hover {
   height: auto;
