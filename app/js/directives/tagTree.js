@@ -7,7 +7,8 @@ class TagTree {
       tag: "=",
       changeParent: "&",
       onSelect: "&",
-      createTag: "&"
+      createTag: "&",
+      saveTags: "&"
     };
   }
 
@@ -40,6 +41,33 @@ class TagTree {
         return;
       }
       $scope.createTag()(tag);
+    }
+
+    $scope.saveTagRename = function(tag) {
+      var delimiter = ".";
+      var tags = [tag];
+      var title;
+      if(tag.parent.master) {
+        title = tag.displayTitle;
+      } else {
+        title = tag.parent.content.title + delimiter + tag.displayTitle;
+      }
+
+      tag.content.title = title;
+
+      function renameChildren(tag) {
+        for(var child of tag.children) {
+          child.content.title = child.parent.content.title + delimiter + child.displayTitle;
+          tags.push(child);
+          renameChildren(child);
+        }
+      }
+
+      renameChildren(tag);
+
+      tag.editing = false;
+
+      $scope.saveTags()(tags);
     }
 
     $scope.generationForTag = function(tag) {

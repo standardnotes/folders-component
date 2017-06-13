@@ -91,8 +91,6 @@ class HomeCtrl {
       }
       source.content.title = newTitle;
       adjustChildren(source);
-
-
       $scope.resolveRawTags();
 
       componentManager.saveItems(needsSave);
@@ -117,11 +115,21 @@ class HomeCtrl {
       } else {
         componentManager.selectItem(tag);
       }
+
       if($scope.selectedTag) {
         $scope.selectedTag.selected = false;
       }
+
+      if($scope.selectedTag === tag) {
+        // edit
+        tag.editing = true;
+      }
       $scope.selectedTag = tag;
       tag.selected = true;
+    }
+
+    $scope.saveTags = function(tags) {
+      componentManager.saveItems(tags);
     }
 
     componentManager.streamItems(function(newTags) {
@@ -156,8 +164,19 @@ class HomeCtrl {
 
     $scope.onTrashDrop = function(tagId) {
       var tag = $scope.masterTag.rawTags.filter(function(tag){return tag.uuid === tagId})[0];
-      componentManager.deleteItem(tag);
-      console.log("Trash drop", tag);
+      var deleteChain = [];
+
+      function addChildren(tag) {
+        deleteChain.push(tag);
+        for(var child of tag.children) {
+          addChildren(child);
+        }
+      }
+
+      addChildren(tag);
+
+      console.log("Trash drop", deleteChain);
+      componentManager.deleteItems(deleteChain);
     }
   }
 

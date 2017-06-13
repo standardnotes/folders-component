@@ -33507,11 +33507,20 @@ class ComponentManager {
   }
 
   deleteItem(item) {
-    this.postMessage("delete-item", { item: this.jsonObjectForItem(item) });
+    this.deleteItems([item]);
+  }
+
+  deleteItems(items) {
+    var params = {
+      items: items.map(function (item) {
+        return this.jsonObjectForItem(item);
+      }.bind(this))
+    };
+    this.postMessage("delete-items", params);
   }
 
   saveItem(item) {
-    this.saveItems[item];
+    this.saveItems([item]);
   }
 
   saveItems(items) {

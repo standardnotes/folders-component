@@ -33507,11 +33507,20 @@ class ComponentManager {
   }
 
   deleteItem(item) {
-    this.postMessage("delete-item", { item: this.jsonObjectForItem(item) });
+    this.deleteItems([item]);
+  }
+
+  deleteItems(items) {
+    var params = {
+      items: items.map(function (item) {
+        return this.jsonObjectForItem(item);
+      }.bind(this))
+    };
+    this.postMessage("delete-items", params);
   }
 
   saveItem(item) {
-    this.saveItems[item];
+    this.saveItems([item]);
   }
 
   saveItems(items) {
@@ -33699,8 +33708,6 @@ angular.module('app', [
       }
       source.content.title = newTitle;
       adjustChildren(source);
-
-
       $scope.resolveRawTags();
 
       componentManager.saveItems(needsSave);
@@ -33725,11 +33732,21 @@ angular.module('app', [
       } else {
         componentManager.selectItem(tag);
       }
+
       if($scope.selectedTag) {
         $scope.selectedTag.selected = false;
       }
+
+      if($scope.selectedTag === tag) {
+        // edit
+        tag.editing = true;
+      }
       $scope.selectedTag = tag;
       tag.selected = true;
+    }
+
+    $scope.saveTags = function(tags) {
+      componentManager.saveItems(tags);
     }
 
     componentManager.streamItems(function(newTags) {
@@ -33764,8 +33781,19 @@ angular.module('app', [
 
     $scope.onTrashDrop = function(tagId) {
       var tag = $scope.masterTag.rawTags.filter(function(tag){return tag.uuid === tagId})[0];
-      componentManager.deleteItem(tag);
-      console.log("Trash drop", tag);
+      var deleteChain = [];
+
+      function addChildren(tag) {
+        deleteChain.push(tag);
+        for(var child of tag.children) {
+          addChildren(child);
+        }
+      }
+
+      addChildren(tag);
+
+      console.log("Trash drop", deleteChain);
+      componentManager.deleteItems(deleteChain);
     }
   }
 
@@ -33775,6 +33803,23 @@ angular.module('app', [
 HomeCtrl.$$ngIsClass = true;
 
 angular.module('app').controller('HomeCtrl', HomeCtrl);
+;angular
+  .module('app')
+  .directive('mbAutofocus', ['$timeout', function($timeout) {
+    return {
+      restrict: 'A',
+      scope: {
+        shouldFocus: "="
+      },
+      link : function($scope, $element) {
+        $timeout(function() {
+          if($scope.shouldFocus) {
+            $element[0].focus();
+          }
+        });
+      }
+    }
+  }]);
 ;angular
   .module('app')
   .directive('draggable', function() {
@@ -33895,7 +33940,8 @@ angular.module('app').controller('HomeCtrl', HomeCtrl);
       tag: "=",
       changeParent: "&",
       onSelect: "&",
-      createTag: "&"
+      createTag: "&",
+      saveTags: "&"
     };
   }
 
@@ -33928,6 +33974,33 @@ angular.module('app').controller('HomeCtrl', HomeCtrl);
         return;
       }
       $scope.createTag()(tag);
+    }
+
+    $scope.saveTagRename = function(tag) {
+      var delimiter = ".";
+      var tags = [tag];
+      var title;
+      if(tag.parent.master) {
+        title = tag.displayTitle;
+      } else {
+        title = tag.parent.content.title + delimiter + tag.displayTitle;
+      }
+
+      tag.content.title = title;
+
+      function renameChildren(tag) {
+        for(var child of tag.children) {
+          child.content.title = child.parent.content.title + delimiter + child.displayTitle;
+          tags.push(child);
+          renameChildren(child);
+        }
+      }
+
+      renameChildren(tag);
+
+      tag.editing = false;
+
+      $scope.saveTags()(tags);
     }
 
     $scope.generationForTag = function(tag) {
@@ -33968,19 +34041,20 @@ angular.module('app').directive('tagTree', () => new TagTree);
     "<div class='self' draggable='true' drop='onDrop' is-draggable='!tag.master' ng-class='{&#39;selected&#39; : tag.selected}' ng-click='selectTag()' tag-id='tag.uuid'>\n" +
     "<div class='info body-text-color' ng-class='&#39;level-&#39; + generationForTag(tag)'>\n" +
     "<div class='circle'></div>\n" +
-    "<div class='title' ng-if='!tag.dummy'>\n" +
+    "<div class='title' ng-if='!tag.dummy &amp;&amp; !tag.editing'>\n" +
     "{{tag.displayTitle}}\n" +
     "</div>\n" +
+    "<input class='title' mb-autofocus='true' ng-if='!tag.dummy &amp;&amp; tag.editing' ng-keyup='$event.keyCode == 13 &amp;&amp; saveTagRename(tag)' ng-model='tag.displayTitle' should-focus='true'>\n" +
     "<div class='hover-menu' ng-if='!tag.dummy'>\n" +
     "<button ng-click='addChild(tag); $event.stopPropagation();'>+</button>\n" +
     "</div>\n" +
     "<div class='new-tag-form' ng-if='tag.dummy'>\n" +
-    "<input autofocus='true' ng-keyup='$event.keyCode == 13 &amp;&amp; saveNewTag(tag)' ng-model='tag.content.title' placeholder=''>\n" +
+    "<input mb-autofocus='true' ng-keyup='$event.keyCode == 13 &amp;&amp; saveNewTag(tag)' ng-model='tag.content.title' placeholder='' should-focus='true'>\n" +
     "</div>\n" +
     "</div>\n" +
     "</div>\n" +
     "<div ng-repeat='child in tag.children'>\n" +
-    "<div change-parent='changeParent()' class='tag-tree' create-tag='createTag()' ng-if='!child.deleted' on-select='onSelect()' tag='child'></div>\n" +
+    "<div change-parent='changeParent()' class='tag-tree' create-tag='createTag()' ng-if='!child.deleted' on-select='onSelect()' save-tags='saveTags()' tag='child'></div>\n" +
     "</div>\n" +
     "</div>\n"
   );
@@ -33990,7 +34064,7 @@ angular.module('app').directive('tagTree', () => new TagTree);
     "<div class='header'>\n" +
     "<h3 class='body-text-color'>Folders</h3>\n" +
     "</div>\n" +
-    "<div change-parent='changeParent' class='tag-tree master' create-tag='createTag' on-select='selectTag' tag='masterTag'></div>\n" +
+    "<div change-parent='changeParent' class='tag-tree master' create-tag='createTag' on-select='selectTag' save-tags='saveTags' tag='masterTag'></div>\n" +
     "<div class='trash' draggable='true' drop='onTrashDrop' is-draggable='false'>\n" +
     "<p>Trash</p>\n" +
     "</div>\n"

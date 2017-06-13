@@ -96,8 +96,6 @@ angular.module('app', [
       }
       source.content.title = newTitle;
       adjustChildren(source);
-
-
       $scope.resolveRawTags();
 
       componentManager.saveItems(needsSave);
@@ -122,11 +120,21 @@ angular.module('app', [
       } else {
         componentManager.selectItem(tag);
       }
+
       if($scope.selectedTag) {
         $scope.selectedTag.selected = false;
       }
+
+      if($scope.selectedTag === tag) {
+        // edit
+        tag.editing = true;
+      }
       $scope.selectedTag = tag;
       tag.selected = true;
+    }
+
+    $scope.saveTags = function(tags) {
+      componentManager.saveItems(tags);
     }
 
     componentManager.streamItems(function(newTags) {
@@ -161,8 +169,19 @@ angular.module('app', [
 
     $scope.onTrashDrop = function(tagId) {
       var tag = $scope.masterTag.rawTags.filter(function(tag){return tag.uuid === tagId})[0];
-      componentManager.deleteItem(tag);
-      console.log("Trash drop", tag);
+      var deleteChain = [];
+
+      function addChildren(tag) {
+        deleteChain.push(tag);
+        for(var child of tag.children) {
+          addChildren(child);
+        }
+      }
+
+      addChildren(tag);
+
+      console.log("Trash drop", deleteChain);
+      componentManager.deleteItems(deleteChain);
     }
   }
 
@@ -172,6 +191,23 @@ angular.module('app', [
 HomeCtrl.$$ngIsClass = true;
 
 angular.module('app').controller('HomeCtrl', HomeCtrl);
+;angular
+  .module('app')
+  .directive('mbAutofocus', ['$timeout', function($timeout) {
+    return {
+      restrict: 'A',
+      scope: {
+        shouldFocus: "="
+      },
+      link : function($scope, $element) {
+        $timeout(function() {
+          if($scope.shouldFocus) {
+            $element[0].focus();
+          }
+        });
+      }
+    }
+  }]);
 ;angular
   .module('app')
   .directive('draggable', function() {
@@ -292,7 +328,8 @@ angular.module('app').controller('HomeCtrl', HomeCtrl);
       tag: "=",
       changeParent: "&",
       onSelect: "&",
-      createTag: "&"
+      createTag: "&",
+      saveTags: "&"
     };
   }
 
@@ -325,6 +362,33 @@ angular.module('app').controller('HomeCtrl', HomeCtrl);
         return;
       }
       $scope.createTag()(tag);
+    }
+
+    $scope.saveTagRename = function(tag) {
+      var delimiter = ".";
+      var tags = [tag];
+      var title;
+      if(tag.parent.master) {
+        title = tag.displayTitle;
+      } else {
+        title = tag.parent.content.title + delimiter + tag.displayTitle;
+      }
+
+      tag.content.title = title;
+
+      function renameChildren(tag) {
+        for(var child of tag.children) {
+          child.content.title = child.parent.content.title + delimiter + child.displayTitle;
+          tags.push(child);
+          renameChildren(child);
+        }
+      }
+
+      renameChildren(tag);
+
+      tag.editing = false;
+
+      $scope.saveTags()(tags);
     }
 
     $scope.generationForTag = function(tag) {

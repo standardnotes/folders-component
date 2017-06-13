@@ -2,12 +2,15 @@
   .self{"draggable" => "true", "is-draggable" => "!tag.master", "drop" => "onDrop", "tag-id" => "tag.uuid", "ng-click" => "selectTag()", "ng-class" => "{'selected' : tag.selected}"}
     .info.body-text-color{"ng-class" => "'level-' + generationForTag(tag)"}
       .circle
-      .title{"ng-if" => "!tag.dummy"}
+
+      .title{"ng-if" => "!tag.dummy && !tag.editing"}
         {{tag.displayTitle}}
+      %input.title{"ng-if" => "!tag.dummy && tag.editing", "mb-autofocus" => "true", "should-focus" => "true", "ng-model" => "tag.displayTitle", "ng-keyup" => "$event.keyCode == 13 && saveTagRename(tag)"}
+
       .hover-menu{"ng-if" => "!tag.dummy"}
         %button{"ng-click" => "addChild(tag); $event.stopPropagation();"} +
       .new-tag-form{"ng-if" => "tag.dummy"}
-        %input{"placeholder" => "", "autofocus" => "true", "ng-model" => "tag.content.title", "ng-keyup" => "$event.keyCode == 13 && saveNewTag(tag)"}
+        %input{"placeholder" => "", "mb-autofocus" => "true", "should-focus" => "true", "ng-model" => "tag.content.title", "ng-keyup" => "$event.keyCode == 13 && saveNewTag(tag)"}
 
   %div{"ng-repeat" => "child in tag.children"}
-    .tag-tree{"ng-if" => "!child.deleted", "tag" => "child", "change-parent" => "changeParent()", "on-select" => "onSelect()", "create-tag" => "createTag()"}
+    .tag-tree{"ng-if" => "!child.deleted", "tag" => "child", "change-parent" => "changeParent()", "on-select" => "onSelect()", "create-tag" => "createTag()", "save-tags" => "saveTags()"}
