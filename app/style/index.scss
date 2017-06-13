@@ -46,7 +46,6 @@ $tag-height: 26px;
 }
 
 .tag-tree {
-  overflow-x: scroll;
   padding-left: 18px;
 
   &.master {
@@ -59,7 +58,7 @@ $tag-height: 26px;
   .self {
 
     min-width: 120px;
-    // width: 100%;
+    width: 100%;
 
     min-height: $tag-height;
 

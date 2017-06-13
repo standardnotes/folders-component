@@ -83,7 +83,6 @@ body {
 }
 
 .tag-tree {
-  overflow-x: scroll;
   padding-left: 18px;
   cursor: pointer;
   font-size: 14px;
@@ -93,6 +92,7 @@ body {
 }
 .tag-tree .self {
   min-width: 120px;
+  width: 100%;
   min-height: 26px;
   /* When a note is dragged over tag */
   display: table;

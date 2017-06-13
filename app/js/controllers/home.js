@@ -42,7 +42,6 @@ class HomeCtrl {
         var parentTitle = comps.slice(0, comps.length - 1).join(delimiter);
         var parent = findResolvedTag(parentTitle);
         if(!parent) {
-          console.log("Parent not found for", parentTitle);
           continue;
         }
 
@@ -120,8 +119,7 @@ class HomeCtrl {
         $scope.selectedTag.selected = false;
       }
 
-      if($scope.selectedTag === tag) {
-        // edit
+      if($scope.selectedTag === tag && !tag.master) {
         tag.editing = true;
       }
       $scope.selectedTag = tag;
@@ -134,8 +132,6 @@ class HomeCtrl {
 
     componentManager.streamItems(function(newTags) {
       $timeout(function(){
-        console.log("New stream data:", newTags);
-
         var allTags = $scope.masterTag ? $scope.masterTag.rawTags : [];
         for(var tag of newTags) {
           var existing = allTags.filter(function(tagCandidate){
@@ -175,7 +171,6 @@ class HomeCtrl {
 
       addChildren(tag);
 
-      console.log("Trash drop", deleteChain);
       componentManager.deleteItems(deleteChain);
     }
   }
