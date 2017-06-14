@@ -4,7 +4,7 @@ class HomeCtrl {
     var permissions = [
       {
         name: "stream-items",
-        content_types: ["Tag", 'Note']
+        content_types: ["Tag"]
       }
     ]
     let componentManager = new window.ComponentManager(permissions, function(){
