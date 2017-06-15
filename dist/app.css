@@ -76,10 +76,11 @@ body {
 }
 
 .content {
-  overflow-x: scroll;
+  overflow-x: visible;
   padding: 15px;
   padding-top: 18px;
   padding-right: 6px;
+  width: 100%;
 }
 
 .tag-tree {
@@ -104,9 +105,11 @@ body {
   color: black;
 }
 .tag-tree .self.selected:before {
+  margin-top: -5px;
   content: '';
   min-height: 26px;
   position: absolute;
+  width: 100%;
   left: 0;
   right: 0;
   z-index: -1;
@@ -127,9 +130,11 @@ body {
   color: black;
 }
 .tag-tree .self:hover:not(.selected):before {
+  margin-top: -5px;
   content: '';
   min-height: 26px;
   position: absolute;
+  width: 100%;
   left: 0;
   right: 0;
   z-index: -1;
@@ -140,6 +145,8 @@ body {
   height: 100%;
   position: relative;
   display: table-cell;
+  display: flex;
+  min-height: 26px;
 }
 .tag-tree .self .info:hover .hover-menu {
   display: inline-block;
@@ -148,10 +155,9 @@ body {
 }
 .tag-tree .self .info .hover-menu {
   display: none;
-  padding-top: 4px;
 }
 .tag-tree .self .info .new-tag-form {
-  display: inline-block;
+  margin-top: -5px;
   width: 70%;
 }
 .tag-tree .self .info .new-tag-form input {
@@ -163,7 +169,7 @@ body {
 }
 .tag-tree .self .info.level-1 .title {
   font-weight: bold;
-  border-bottom: 1px solid var(--body-text-color);
+  text-decoration: underline;
 }
 .tag-tree .self .info.level-0 .circle {
   background: blue;
@@ -182,7 +188,6 @@ body {
 }
 .tag-tree .self .info .circle {
   height: 26px;
-  display: inline-block;
   height: 10px;
   width: 10px;
   border-radius: 20%;
@@ -193,16 +198,15 @@ body {
   border-bottom: 0;
   width: 80%;
   outline: 0;
+  margin-top: -15px;
 }
 .tag-tree .self .info .title {
-  display: inline-block;
   background-color: transparent;
   font-weight: 200;
   font-size: 14px;
   border: none;
   cursor: pointer;
   text-overflow: ellipsis;
-  padding-top: 5px;
   pointer-events: none;
 }
 

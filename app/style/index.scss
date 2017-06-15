@@ -39,10 +39,11 @@ body {
 $tag-height: 26px;
 
 .content {
-  overflow-x: scroll;
+  overflow-x: visible;
   padding: 15px;
   padding-top: 18px;
   padding-right: 6px;
+  width: 100%;
 }
 
 .tag-tree {
@@ -68,9 +69,11 @@ $tag-height: 26px;
         color: $selected-text-color;
       }
       &:before {
+        margin-top: -5px;
         content: '';
         min-height: $tag-height;
         position: absolute;
+        width: 100%;
         left: 0;
         right: 0;
         z-index: -1;
@@ -103,6 +106,8 @@ $tag-height: 26px;
       height: 100%;
       position: relative;
       display: table-cell;
+      display: flex;
+      min-height: $tag-height;
 
       &:hover {
        .hover-menu {
@@ -114,11 +119,11 @@ $tag-height: 26px;
 
       .hover-menu {
         display: none;
-        padding-top: 4px;
+        // padding-top: 4px;
       }
 
       .new-tag-form {
-        display: inline-block;
+        margin-top: -5px;
         width: 70%;
         input {
           background-color: transparent;
@@ -144,7 +149,8 @@ $tag-height: 26px;
       &.level-1 {
         .title {
           font-weight: bold;
-          border-bottom: 1px solid var(--body-text-color);
+          text-decoration: underline;
+          // border-bottom: 1px solid var(--body-text-color);
         }
       }
 
@@ -152,7 +158,6 @@ $tag-height: 26px;
 
      .circle {
        height: $tag-height;
-       display: inline-block;
        height: 10px;
        width: 10px;
        border-radius: 20%;
@@ -164,18 +169,16 @@ $tag-height: 26px;
        border-bottom: 0;
        width: 80%;
        outline: 0;
+       margin-top: -15px;
      }
 
      .title {
-       display: inline-block;
        background-color: transparent;
        font-weight: 200;
        font-size: $font-size;
        border: none;
        cursor: pointer;
        text-overflow: ellipsis;
-       padding-top: 5px;
-
        pointer-events: none;
      }
    }
