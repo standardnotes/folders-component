@@ -44,6 +44,7 @@ $tag-height: 26px;
   padding-top: 18px;
   padding-right: 6px;
   width: 100%;
+  padding-bottom: 45px;
 }
 
 .tag-tree {
@@ -187,12 +188,18 @@ $tag-height: 26px;
 }
 
 .trash {
-  position: absolute;
+  position: fixed;
   bottom: 10px;
   text-align: center;
-  opacity: 0.3;
+  // opacity: 0.3;
   width: 100%;
   font-size: 12px;
+  border: 1px dashed gray;
+  border-style: dotted;
+  padding: 10px 0;
+  // background-color: white;
+  background-color: rgba($tags-selected-color, 0.4);
+  margin-top: 20px;
 
   &.over, &:hover {
     border: 2px dashed white;

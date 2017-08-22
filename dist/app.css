@@ -81,6 +81,7 @@ body {
   padding-top: 18px;
   padding-right: 6px;
   width: 100%;
+  padding-bottom: 45px;
 }
 
 .tag-tree {
@@ -211,12 +212,16 @@ body {
 }
 
 .trash {
-  position: absolute;
+  position: fixed;
   bottom: 10px;
   text-align: center;
-  opacity: 0.3;
   width: 100%;
   font-size: 12px;
+  border: 1px dashed gray;
+  border-style: dotted;
+  padding: 10px 0;
+  background-color: rgba(219, 219, 219, 0.4);
+  margin-top: 20px;
 }
 .trash.over, .trash:hover {
   border: 2px dashed white;
