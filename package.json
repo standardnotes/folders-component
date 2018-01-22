@@ -1,5 +1,5 @@
 {
-  "name": "NestedTags",
+  "name": "sn-folders",
   "version": "1.0.0",
   "devDependencies": {
     "grunt": "^1.0.1",
@@ -17,9 +17,8 @@
     "grunt-browserify": "^5.0.0",
     "grunt-contrib-concat": "^1.0.1",
     "grunt-contrib-uglify": "^2.0.0",
-    "grunt-ng-annotate": "^3.0.0"
-  },
-  "dependencies": {
-    "babel-preset-es2015": "^6.24.1"
+    "grunt-ng-annotate": "^3.0.0",
+    "babel-preset-es2015": "^6.24.1",
+    "sn-components-api": "^1.0.242"
   }
 }
