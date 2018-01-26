@@ -130,7 +130,7 @@ class HomeCtrl {
       componentManager.saveItems(tags);
     }
 
-    componentManager.streamItems(function(newTags) {
+    componentManager.streamItems("Tag", function(newTags) {
       $timeout(function(){
         var allTags = $scope.masterTag ? $scope.masterTag.rawTags : [];
         for(var tag of newTags) {

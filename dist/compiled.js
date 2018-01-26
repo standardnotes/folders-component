@@ -34170,13 +34170,13 @@ var ComponentManager = function () {
       };
 
       /*
-          Coallesed saving prevents saves from being made after every keystroke, and instead
-          waits coallesedSavingDelay before performing action. For example, if a user types a keystroke, and the clienet calls saveItem,
-          a 250ms delay will begin. If they type another keystroke within 250ms, the previously pending
-          save will be cancelled, and another 250ms delay occurs. If ater 250ms the pending delay is not cleared by a future call,
-          the save will finally trigger.
-           Note: it's important to modify saving items updated_at immediately and not after delay. If you modify after delay,
-          a delayed sync could just be wrapping up, and will send back old data and replace what the user has typed.
+        Coallesed saving prevents saves from being made after every keystroke, and instead
+        waits coallesedSavingDelay before performing action. For example, if a user types a keystroke, and the clienet calls saveItem,
+        a 250ms delay will begin. If they type another keystroke within 250ms, the previously pending
+        save will be cancelled, and another 250ms delay occurs. If ater 250ms the pending delay is not cleared by a future call,
+        the save will finally trigger.
+         Note: it's important to modify saving items updated_at immediately and not after delay. If you modify after delay,
+        a delayed sync could just be wrapping up, and will send back old data and replace what the user has typed.
       */
       if (this.coallesedSaving == true) {
         if (this.pendingSave) {
@@ -34195,6 +34195,17 @@ var ComponentManager = function () {
       copy.children = null;
       copy.parent = null;
       return copy;
+    }
+  }, {
+    key: "getItemAppDataValue",
+    value: function getItemAppDataValue(item, key) {
+      var AppDomain = "org.standardnotes.sn";
+      var data = item.content.appData && item.content.appData[AppDomain];
+      if (data) {
+        return data[key];
+      } else {
+        return null;
+      }
     }
 
     /* Themes */
@@ -34526,7 +34537,7 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
     componentManager.saveItems(tags);
   };
 
-  componentManager.streamItems(function (newTags) {
+  componentManager.streamItems("Tag", function (newTags) {
     $timeout(function () {
       var allTags = $scope.masterTag ? $scope.masterTag.rawTags : [];
       var _iteratorNormalCompletion7 = true;
