@@ -1,13 +1,7 @@
 class HomeCtrl {
   constructor($rootScope, $scope, $timeout) {
 
-    var permissions = [
-      {
-        name: "stream-items",
-        content_types: ["Tag"]
-      }
-    ]
-    let componentManager = new window.ComponentManager(permissions, function(){
+    let componentManager = new window.ComponentManager([], function(){
       // on ready
     });
 

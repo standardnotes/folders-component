@@ -431,11 +431,7 @@ angular.module('app', []);
 var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
   _classCallCheck2(this, HomeCtrl);
 
-  var permissions = [{
-    name: "stream-items",
-    content_types: ["Tag"]
-  }];
-  var componentManager = new window.ComponentManager(permissions, function () {
+  var componentManager = new window.ComponentManager([], function () {
     // on ready
   });
 
