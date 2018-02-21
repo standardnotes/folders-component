@@ -34582,9 +34582,9 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
     });
   }.bind(this));
 
-  $scope.onTrashDrop = function (tagId) {
-    var tag = $scope.masterTag.rawTags.filter(function (tag) {
-      return tag.uuid === tagId;
+  $scope.deleteTag = function (tag) {
+    var tag = $scope.masterTag.rawTags.filter(function (candidate) {
+      return candidate.uuid === tag.uuid;
     })[0];
     var deleteChain = [];
 
@@ -34736,7 +34736,8 @@ var TagTree = function () {
       changeParent: "&",
       onSelect: "&",
       createTag: "&",
-      saveTags: "&"
+      saveTags: "&",
+      deleteTag: "&"
     };
   }
 
@@ -34749,13 +34750,9 @@ var TagTree = function () {
         $scope.changeParent()(sourceId, targetId);
       };
 
-      $scope.onDragOver = function (event) {
-        // console.log("onDragOver", event);
-      };
+      $scope.onDragOver = function (event) {};
 
-      $scope.onDragStart = function (event) {
-        // console.log("On drag start", event);
-      };
+      $scope.onDragStart = function (event) {};
 
       $scope.selectTag = function () {
         $scope.onSelect()($scope.tag);
@@ -34774,6 +34771,11 @@ var TagTree = function () {
       };
 
       $scope.saveTagRename = function (tag) {
+        if (!tag.displayTitle || tag.displayTitle.length == 0) {
+          // Delete
+          $scope.deleteTag()(tag);
+          return;
+        }
         var delimiter = ".";
         var tags = [tag];
         var title;
@@ -34830,6 +34832,19 @@ var TagTree = function () {
         }
         return generation;
       };
+
+      $scope.circleClassForTag = function (tag) {
+        var gen = $scope.generationForTag(tag);
+        var circleClass = {
+          0: "info",
+          1: "info",
+          2: "success",
+          3: "danger",
+          4: "warning"
+        }[gen];
+
+        return circleClass ? circleClass : "default";
+      };
     }]
   }]);
 
@@ -34864,8 +34879,8 @@ angular.module('app').directive('tagTree', function () {
   $templateCache.put('directives/tag_tree.html',
     "<div ng-if='tag'>\n" +
     "<div class='self' draggable='true' drop='onDrop' is-draggable='!tag.master' ng-class='{&#39;selected&#39; : tag.selected}' ng-click='selectTag()' tag-id='tag.uuid'>\n" +
-    "<div class='info body-text-color' ng-class='&#39;level-&#39; + generationForTag(tag)'>\n" +
-    "<div class='circle'></div>\n" +
+    "<div class='tag-info body-text-color' ng-class='&#39;level-&#39; + generationForTag(tag)'>\n" +
+    "<div class='circle small' ng-class='circleClassForTag(tag)'></div>\n" +
     "<div class='title' ng-if='!tag.dummy &amp;&amp; !tag.editing'>\n" +
     "{{tag.displayTitle}}\n" +
     "</div>\n" +
@@ -34879,21 +34894,20 @@ angular.module('app').directive('tagTree', function () {
     "</div>\n" +
     "</div>\n" +
     "<div ng-repeat='child in tag.children'>\n" +
-    "<div change-parent='changeParent()' class='tag-tree' create-tag='createTag()' ng-if='!child.deleted' on-select='onSelect()' save-tags='saveTags()' tag='child'></div>\n" +
+    "<div change-parent='changeParent()' class='tag-tree' create-tag='createTag()' delete-tag='deleteTag()' ng-if='!child.deleted' on-select='onSelect()' save-tags='saveTags()' tag='child'></div>\n" +
     "</div>\n" +
     "</div>\n"
   );
 
 
   $templateCache.put('home.html',
+    "<div class='sn-component'>\n" +
     "<div class='content'>\n" +
     "<div class='header'>\n" +
-    "<h3 class='body-text-color'>Folders</h3>\n" +
+    "<h4 class='body-text-color'>Folders</h4>\n" +
     "</div>\n" +
-    "<div change-parent='changeParent' class='tag-tree master' create-tag='createTag' on-select='selectTag' save-tags='saveTags' tag='masterTag'></div>\n" +
+    "<div change-parent='changeParent' class='tag-tree master' create-tag='createTag' delete-tag='deleteTag' on-select='selectTag' save-tags='saveTags' tag='masterTag'></div>\n" +
     "</div>\n" +
-    "<div class='trash' draggable='true' drop='onTrashDrop' is-draggable='false'>\n" +
-    "<p>Trash</p>\n" +
     "</div>\n"
   );
 

@@ -8,7 +8,8 @@ class TagTree {
       changeParent: "&",
       onSelect: "&",
       createTag: "&",
-      saveTags: "&"
+      saveTags: "&",
+      deleteTag: "&"
     };
   }
 
@@ -20,11 +21,11 @@ class TagTree {
     }
 
     $scope.onDragOver = function(event) {
-      // console.log("onDragOver", event);
+
     }
 
     $scope.onDragStart = function(event) {
-      // console.log("On drag start", event);
+
     }
 
     $scope.selectTag = function() {
@@ -44,6 +45,11 @@ class TagTree {
     }
 
     $scope.saveTagRename = function(tag) {
+      if(!tag.displayTitle || tag.displayTitle.length == 0) {
+        // Delete
+        $scope.deleteTag()(tag);
+        return;
+      }
       var delimiter = ".";
       var tags = [tag];
       var title;
@@ -78,6 +84,19 @@ class TagTree {
         parent = parent.parent;
       }
       return generation;
+    }
+
+    $scope.circleClassForTag = function(tag) {
+      let gen = $scope.generationForTag(tag);
+      var circleClass = {
+        0: "info",
+        1: "info",
+        2: "success",
+        3: "danger",
+        4: "warning"
+      }[gen];
+
+      return circleClass ? circleClass : "default";
     }
 
   }

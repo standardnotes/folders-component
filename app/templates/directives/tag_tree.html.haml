@@ -1,7 +1,7 @@
 %div{"ng-if" => "tag"}
   .self{"draggable" => "true", "is-draggable" => "!tag.master", "drop" => "onDrop", "tag-id" => "tag.uuid", "ng-click" => "selectTag()", "ng-class" => "{'selected' : tag.selected}"}
-    .info.body-text-color{"ng-class" => "'level-' + generationForTag(tag)"}
-      .circle
+    .tag-info.body-text-color{"ng-class" => "'level-' + generationForTag(tag)"}
+      .circle.small{"ng-class" => "circleClassForTag(tag)"}
 
       .title{"ng-if" => "!tag.dummy && !tag.editing"}
         {{tag.displayTitle}}
@@ -13,4 +13,5 @@
         %input{"placeholder" => "", "mb-autofocus" => "true", "should-focus" => "true", "ng-model" => "tag.content.title", "ng-keyup" => "$event.keyCode == 13 && saveNewTag(tag)"}
 
   %div{"ng-repeat" => "child in tag.children"}
-    .tag-tree{"ng-if" => "!child.deleted", "tag" => "child", "change-parent" => "changeParent()", "on-select" => "onSelect()", "create-tag" => "createTag()", "save-tags" => "saveTags()"}
+    .tag-tree{"ng-if" => "!child.deleted", "tag" => "child", "change-parent" => "changeParent()",
+    "on-select" => "onSelect()", "create-tag" => "createTag()", "save-tags" => "saveTags()", "delete-tag" => "deleteTag()"}

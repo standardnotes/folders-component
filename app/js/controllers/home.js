@@ -152,8 +152,8 @@ class HomeCtrl {
       })
     }.bind(this));
 
-    $scope.onTrashDrop = function(tagId) {
-      var tag = $scope.masterTag.rawTags.filter(function(tag){return tag.uuid === tagId})[0];
+    $scope.deleteTag = function(tag) {
+      var tag = $scope.masterTag.rawTags.filter(function(candidate){return candidate.uuid === tag.uuid})[0];
       var deleteChain = [];
 
       function addChildren(tag) {

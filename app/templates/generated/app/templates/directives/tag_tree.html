@@ -1,7 +1,7 @@
 <div ng-if='tag'>
 <div class='self' draggable='true' drop='onDrop' is-draggable='!tag.master' ng-class='{&#39;selected&#39; : tag.selected}' ng-click='selectTag()' tag-id='tag.uuid'>
-<div class='info body-text-color' ng-class='&#39;level-&#39; + generationForTag(tag)'>
-<div class='circle'></div>
+<div class='tag-info body-text-color' ng-class='&#39;level-&#39; + generationForTag(tag)'>
+<div class='circle small' ng-class='circleClassForTag(tag)'></div>
 <div class='title' ng-if='!tag.dummy &amp;&amp; !tag.editing'>
 {{tag.displayTitle}}
 </div>
@@ -15,6 +15,6 @@
 </div>
 </div>
 <div ng-repeat='child in tag.children'>
-<div change-parent='changeParent()' class='tag-tree' create-tag='createTag()' ng-if='!child.deleted' on-select='onSelect()' save-tags='saveTags()' tag='child'></div>
+<div change-parent='changeParent()' class='tag-tree' create-tag='createTag()' delete-tag='deleteTag()' ng-if='!child.deleted' on-select='onSelect()' save-tags='saveTags()' tag='child'></div>
 </div>
 </div>

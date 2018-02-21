@@ -694,9 +694,9 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
     });
   }.bind(this));
 
-  $scope.onTrashDrop = function (tagId) {
-    var tag = $scope.masterTag.rawTags.filter(function (tag) {
-      return tag.uuid === tagId;
+  $scope.deleteTag = function (tag) {
+    var tag = $scope.masterTag.rawTags.filter(function (candidate) {
+      return candidate.uuid === tag.uuid;
     })[0];
     var deleteChain = [];
 
@@ -847,7 +847,8 @@ var TagTree = function () {
       changeParent: "&",
       onSelect: "&",
       createTag: "&",
-      saveTags: "&"
+      saveTags: "&",
+      deleteTag: "&"
     };
   }
 
@@ -860,13 +861,9 @@ var TagTree = function () {
         $scope.changeParent()(sourceId, targetId);
       };
 
-      $scope.onDragOver = function (event) {
-        // console.log("onDragOver", event);
-      };
+      $scope.onDragOver = function (event) {};
 
-      $scope.onDragStart = function (event) {
-        // console.log("On drag start", event);
-      };
+      $scope.onDragStart = function (event) {};
 
       $scope.selectTag = function () {
         $scope.onSelect()($scope.tag);
@@ -885,6 +882,11 @@ var TagTree = function () {
       };
 
       $scope.saveTagRename = function (tag) {
+        if (!tag.displayTitle || tag.displayTitle.length == 0) {
+          // Delete
+          $scope.deleteTag()(tag);
+          return;
+        }
         var delimiter = ".";
         var tags = [tag];
         var title;
@@ -940,6 +942,19 @@ var TagTree = function () {
           parent = parent.parent;
         }
         return generation;
+      };
+
+      $scope.circleClassForTag = function (tag) {
+        var gen = $scope.generationForTag(tag);
+        var circleClass = {
+          0: "info",
+          1: "info",
+          2: "success",
+          3: "danger",
+          4: "warning"
+        }[gen];
+
+        return circleClass ? circleClass : "default";
       };
     }
   }]);
