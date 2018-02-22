@@ -438,6 +438,11 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
   var delimiter = ".";
 
   $scope.resolveRawTags = function () {
+    var sortTags = function sortTags(tags) {
+      return tags.sort(function (a, b) {
+        return (a.content.title > b.content.title) - (a.content.title < b.content.title);
+      });
+    };
     var resolved = $scope.masterTag.rawTags.slice();
 
     var findResolvedTag = function findResolvedTag(title) {
@@ -522,9 +527,7 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
         }
 
         parent.children.push(tag);
-        parent.children = parent.children.sort(function (a, b) {
-          return a.content.title > b.content.title;
-        });
+        parent.children = sortTags(parent.children);
         tag.parent = parent;
 
         // remove chid from master list
@@ -546,10 +549,7 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
       }
     }
 
-    resolved = resolved.sort(function (a, b) {
-      return a.content.title > b.content.title;
-    });
-    $scope.masterTag.children = resolved;
+    $scope.masterTag.children = sortTags(resolved);
   };
 
   $scope.changeParent = function (sourceId, targetId) {

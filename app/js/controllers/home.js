@@ -8,6 +8,9 @@ class HomeCtrl {
     let delimiter = ".";
 
     $scope.resolveRawTags = function() {
+      let sortTags = (tags) => {
+        return tags.sort((a, b) => (a.content.title > b.content.title) - (a.content.title < b.content.title));
+      }
       var resolved = $scope.masterTag.rawTags.slice();
 
       var findResolvedTag = function(title) {
@@ -40,7 +43,7 @@ class HomeCtrl {
         }
 
         parent.children.push(tag);
-        parent.children = parent.children.sort(function(a, b){return a.content.title > b.content.title});
+        parent.children = sortTags(parent.children);
         tag.parent = parent;
 
         // remove chid from master list
@@ -48,8 +51,7 @@ class HomeCtrl {
         resolved.splice(index, 1);
       }
 
-      resolved = resolved.sort(function(a, b){return a.content.title > b.content.title});
-      $scope.masterTag.children = resolved;
+      $scope.masterTag.children = sortTags(resolved);
     }
 
     $scope.changeParent = function(sourceId, targetId) {
