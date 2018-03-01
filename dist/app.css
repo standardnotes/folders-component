@@ -190,6 +190,7 @@ body {
   width: 45px;
   height: 20px;
   line-height: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
   cursor: pointer;
   background-color: #eff2fb;
   border-radius: 4px;
