@@ -115,7 +115,16 @@ body {
   left: 0;
   right: 0;
   z-index: -1;
-  background: rgba(0, 0, 0, 0.13);
+  background: rgba(190, 212, 219, 0.5);
+  /* Old browsers */
+  background: -moz-linear-gradient(left, rgba(190, 212, 219, 0.5) 0%, rgba(206, 203, 216, 0.5) 100%);
+  /* FF3.6-15 */
+  background: -webkit-linear-gradient(left, rgba(190, 212, 219, 0.5) 0%, rgba(206, 203, 216, 0.5) 100%);
+  /* Chrome10-25,Safari5.1-6 */
+  background: linear-gradient(to right, rgba(190, 212, 219, 0.5) 0%, rgba(206, 203, 216, 0.5) 100%);
+  /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#bed4db', endColorstr='#cecbd8',GradientType=1 );
+  /* IE6-9 */
 }
 .tag-tree .self.over {
   background-color: rgba(0, 0, 0, 0.13);
@@ -145,7 +154,16 @@ body {
   left: 0;
   right: 0;
   z-index: -1;
-  background: rgba(0, 0, 0, 0.13);
+  background: rgba(190, 212, 219, 0.5);
+  /* Old browsers */
+  background: -moz-linear-gradient(left, rgba(190, 212, 219, 0.5) 0%, rgba(206, 203, 216, 0.5) 100%);
+  /* FF3.6-15 */
+  background: -webkit-linear-gradient(left, rgba(190, 212, 219, 0.5) 0%, rgba(206, 203, 216, 0.5) 100%);
+  /* Chrome10-25,Safari5.1-6 */
+  background: linear-gradient(to right, rgba(190, 212, 219, 0.5) 0%, rgba(206, 203, 216, 0.5) 100%);
+  /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#bed4db', endColorstr='#cecbd8',GradientType=1 );
+  /* IE6-9 */
 }
 .tag-tree .self .tag-info {
   min-height: 100%;
@@ -157,11 +175,29 @@ body {
 }
 .tag-tree .self .tag-info:hover .hover-menu {
   display: inline-block;
-  float: right;
-  margin-left: 10px;
 }
 .tag-tree .self .tag-info .hover-menu {
   display: none;
+  margin-top: -3px;
+  float: right;
+  position: absolute;
+  right: 20px;
+  top: 0;
+}
+.tag-tree .self .tag-info .hover-menu button {
+  font-size: 14px;
+  color: #607ed7;
+  width: 45px;
+  height: 20px;
+  line-height: 10px;
+  cursor: pointer;
+  background-color: #eff2fb;
+  border-radius: 4px;
+  font-weight: normal;
+  text-align: center;
+}
+.tag-tree .self .tag-info .hover-menu button:hover {
+  background-color: #e7ebf9;
 }
 .tag-tree .self .tag-info .new-tag-form {
   margin-top: -5px;
