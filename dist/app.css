@@ -191,11 +191,18 @@ body {
   height: 20px;
   line-height: 10px;
   border: 1px solid rgba(0, 0, 0, 0.15);
+  outline: none;
   cursor: pointer;
   background-color: #eff2fb;
   border-radius: 4px;
   font-weight: normal;
   text-align: center;
+}
+.tag-tree .self .tag-info .hover-menu button.half {
+  width: 25px;
+}
+.tag-tree .self .tag-info .hover-menu button.danger {
+  color: red;
 }
 .tag-tree .self .tag-info .hover-menu button:hover {
   background-color: #e7ebf9;

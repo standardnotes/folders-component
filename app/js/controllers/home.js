@@ -111,8 +111,9 @@ class HomeCtrl {
         componentManager.selectItem(tag);
       }
 
-      if($scope.selectedTag) {
+      if($scope.selectedTag && $scope.selectedTag != tag) {
         $scope.selectedTag.selected = false;
+        $scope.selectedTag.editing = false;
       }
 
       if($scope.selectedTag === tag && !tag.master) {

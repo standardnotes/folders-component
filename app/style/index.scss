@@ -147,6 +147,15 @@ $tag-height: 26px;
           height: 20px;
           line-height: 10px;
           border: 1px solid rgba(black, 0.15);
+          outline: none;
+
+          &.half {
+            width: 25px;
+          }
+
+          &.danger {
+            color: red;
+          }
 
           cursor: pointer;
           background-color: $button-bg;

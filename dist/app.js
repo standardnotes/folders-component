@@ -630,8 +630,9 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
       componentManager.selectItem(tag);
     }
 
-    if ($scope.selectedTag) {
+    if ($scope.selectedTag && $scope.selectedTag != tag) {
       $scope.selectedTag.selected = false;
+      $scope.selectedTag.editing = false;
     }
 
     if ($scope.selectedTag === tag && !tag.master) {
@@ -854,7 +855,7 @@ var TagTree = function () {
 
   _createClass2(TagTree, [{
     key: "controller",
-    value: function controller($scope) {
+    value: function controller($scope, $timeout) {
       'ngInject';
 
       $scope.onDrop = function (sourceId, targetId) {
@@ -870,15 +871,35 @@ var TagTree = function () {
       };
 
       $scope.addChild = function (parent) {
-        parent.children.unshift({ dummy: true, parent: parent, content: {} });
+        var addTag = function addTag() {
+          $scope.addingTag = { parentScope: $scope, dummy: true, parent: parent, content: { title: "" } };
+          parent.children.unshift($scope.addingTag);
+        };
+
+        if ($scope.addingTag) {
+          if ($scope.addingTag.content.title.length == 0) {
+            return;
+          }
+
+          $scope.saveNewTag($scope.addingTag);
+          $timeout(addTag, 100);
+        } else {
+          addTag();
+        }
       };
 
       $scope.saveNewTag = function (tag) {
-        if (tag.content.title.length === 0) {
+        tag.parentScope.addingTag = null;
+        if (!tag.content.title || tag.content.title.length === 0) {
           tag.parent.children.slice(tag.parent.children.indexOf(tag), 0);
           return;
         }
+        tag.parentScope = null; // avoid json circular refs
         $scope.createTag()(tag);
+      };
+
+      $scope.removeTag = function (tag) {
+        $scope.deleteTag()(tag);
       };
 
       $scope.saveTagRename = function (tag) {

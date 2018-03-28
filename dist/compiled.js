@@ -34518,8 +34518,9 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
       componentManager.selectItem(tag);
     }
 
-    if ($scope.selectedTag) {
+    if ($scope.selectedTag && $scope.selectedTag != tag) {
       $scope.selectedTag.selected = false;
+      $scope.selectedTag.editing = false;
     }
 
     if ($scope.selectedTag === tag && !tag.master) {
@@ -34743,7 +34744,7 @@ var TagTree = function () {
 
   _createClass2(TagTree, [{
     key: "controller",
-    value: ['$scope', function controller($scope) {
+    value: ['$scope', '$timeout', function controller($scope, $timeout) {
       'ngInject';
 
       $scope.onDrop = function (sourceId, targetId) {
@@ -34759,15 +34760,35 @@ var TagTree = function () {
       };
 
       $scope.addChild = function (parent) {
-        parent.children.unshift({ dummy: true, parent: parent, content: {} });
+        var addTag = function addTag() {
+          $scope.addingTag = { parentScope: $scope, dummy: true, parent: parent, content: { title: "" } };
+          parent.children.unshift($scope.addingTag);
+        };
+
+        if ($scope.addingTag) {
+          if ($scope.addingTag.content.title.length == 0) {
+            return;
+          }
+
+          $scope.saveNewTag($scope.addingTag);
+          $timeout(addTag, 100);
+        } else {
+          addTag();
+        }
       };
 
       $scope.saveNewTag = function (tag) {
-        if (tag.content.title.length === 0) {
+        tag.parentScope.addingTag = null;
+        if (!tag.content.title || tag.content.title.length === 0) {
           tag.parent.children.slice(tag.parent.children.indexOf(tag), 0);
           return;
         }
+        tag.parentScope = null; // avoid json circular refs
         $scope.createTag()(tag);
+      };
+
+      $scope.removeTag = function (tag) {
+        $scope.deleteTag()(tag);
       };
 
       $scope.saveTagRename = function (tag) {
@@ -34886,6 +34907,7 @@ angular.module('app').directive('tagTree', function () {
     "</div>\n" +
     "<input class='title' mb-autofocus='true' ng-if='!tag.dummy &amp;&amp; tag.editing' ng-keyup='$event.keyCode == 13 &amp;&amp; saveTagRename(tag)' ng-model='tag.displayTitle' should-focus='true'>\n" +
     "<div class='hover-menu' ng-if='!tag.dummy &amp;&amp; !tag.editing &amp;&amp; tag.selected'>\n" +
+    "<button class='half danger' ng-click='removeTag(tag); $event.stopPropagation();' ng-if='!tag.master'>–</button>\n" +
     "<button ng-click='addChild(tag); $event.stopPropagation();'>+</button>\n" +
     "</div>\n" +
     "<div class='new-tag-form' ng-if='tag.dummy'>\n" +
