@@ -10,10 +10,11 @@
 
       .hover-menu{"ng-if" => "!tag.dummy && !tag.editing && tag.selected"}
         %button.half.danger{"ng-if" => "!tag.master", "ng-click" => "removeTag(tag); $event.stopPropagation();"} –
-        %button{"ng-click" => "addChild(tag); $event.stopPropagation();"} +
+        %button{"ng-click" => "addChild($event, tag);"} +
 
       .new-tag-form{"ng-if" => "tag.dummy"}
-        %input{"placeholder" => "", "mb-autofocus" => "true", "should-focus" => "true", "ng-model" => "tag.content.title", "ng-keyup" => "$event.keyCode == 13 && saveNewTag(tag)"}
+        %input{"placeholder" => "", "mb-autofocus" => "true", "should-focus" => "true", "ng-model" => "tag.content.title",
+        "ng-keyup" => "$event.keyCode == 13 && saveNewTag(tag)", "ng-blur" => "saveNewTag(tag)"}
 
   %div{"ng-repeat" => "child in tag.children"}
     .tag-tree{"ng-if" => "!child.deleted", "tag" => "child", "change-parent" => "changeParent()",

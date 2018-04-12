@@ -32,6 +32,13 @@ body {
   max-width: 100%;
 }
 
+.sn-component {
+  overflow: hidden;
+  &:hover {
+    overflow: auto;
+  }
+}
+
 .header {
   margin-bottom: 15px;
 }
@@ -43,7 +50,7 @@ $tag-height: 26px;
   padding: 15px;
   padding-top: 15px;
   padding-right: 6px;
-  width: 100%;
+  // width: 100%;
   padding-bottom: 5px;
 }
 

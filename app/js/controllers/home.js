@@ -23,8 +23,13 @@ class HomeCtrl {
       }
 
       for(var tag of $scope.masterTag.rawTags) {
+        var pendingDummy = tag.children && tag.children.find((c) => {return c.dummy});
         tag.children = [];
         tag.parent = null;
+
+        if(pendingDummy) {
+          tag.children.unshift(pendingDummy);
+        }
       };
 
       for(var tag of $scope.masterTag.rawTags) {
@@ -49,9 +54,16 @@ class HomeCtrl {
         // remove chid from master list
         var index = resolved.indexOf(tag);
         resolved.splice(index, 1);
+
+        if($scope.selectedTag && $scope.selectedTag.uuid == tag.uuid) {
+          $scope.selectedTag = tag;
+          tag.selected = true;
+        }
       }
 
+      var pendingDummy = $scope.masterTag.children && $scope.masterTag.children.find((c) => {return c.dummy});
       $scope.masterTag.children = sortTags(resolved);
+      if(pendingDummy) { $scope.masterTag.children.unshift(pendingDummy); }
     }
 
     $scope.changeParent = function(sourceId, targetId) {
@@ -141,14 +153,22 @@ class HomeCtrl {
           }
         }
 
-        $scope.masterTag = {
-          master: true,
-          content: {
-            title: ""
-          },
-          displayTitle: "All",
-          rawTags: allTags,
-          uuid: "0"
+        if(!$scope.masterTag) {
+          $scope.masterTag = {
+            master: true,
+            content: {
+              title: ""
+            },
+            displayTitle: "All",
+            uuid: "0"
+          }
+        }
+
+        $scope.masterTag.rawTags = allTags;
+
+        if(!$scope.selectedTag || ($scope.selectedTag && $scope.selectedTag.master)) {
+          $scope.selectedTag = $scope.masterTag;
+          $scope.selectedTag.selected = true;
         }
 
         $scope.resolveRawTags();

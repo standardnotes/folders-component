@@ -484,8 +484,15 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
       for (var _iterator4 = $scope.masterTag.rawTags[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
         var tag = _step4.value;
 
+        var pendingDummy = tag.children && tag.children.find(function (c) {
+          return c.dummy;
+        });
         tag.children = [];
         tag.parent = null;
+
+        if (pendingDummy) {
+          tag.children.unshift(pendingDummy);
+        }
       }
     } catch (err) {
       _didIteratorError4 = true;
@@ -533,6 +540,11 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
         // remove chid from master list
         var index = resolved.indexOf(tag);
         resolved.splice(index, 1);
+
+        if ($scope.selectedTag && $scope.selectedTag.uuid == tag.uuid) {
+          $scope.selectedTag = tag;
+          tag.selected = true;
+        }
       }
     } catch (err) {
       _didIteratorError5 = true;
@@ -549,7 +561,13 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
       }
     }
 
+    var pendingDummy = $scope.masterTag.children && $scope.masterTag.children.find(function (c) {
+      return c.dummy;
+    });
     $scope.masterTag.children = sortTags(resolved);
+    if (pendingDummy) {
+      $scope.masterTag.children.unshift(pendingDummy);
+    }
   };
 
   $scope.changeParent = function (sourceId, targetId) {
@@ -681,15 +699,23 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
         }
       }
 
-      $scope.masterTag = {
-        master: true,
-        content: {
-          title: ""
-        },
-        displayTitle: "All",
-        rawTags: allTags,
-        uuid: "0"
-      };
+      if (!$scope.masterTag) {
+        $scope.masterTag = {
+          master: true,
+          content: {
+            title: ""
+          },
+          displayTitle: "All",
+          uuid: "0"
+        };
+      }
+
+      $scope.masterTag.rawTags = allTags;
+
+      if (!$scope.selectedTag || $scope.selectedTag && $scope.selectedTag.master) {
+        $scope.selectedTag = $scope.masterTag;
+        $scope.selectedTag.selected = true;
+      }
 
       $scope.resolveRawTags();
     });
@@ -870,31 +896,17 @@ var TagTree = function () {
         $scope.onSelect()($scope.tag);
       };
 
-      $scope.addChild = function (parent) {
-        var addTag = function addTag() {
-          $scope.addingTag = { parentScope: $scope, dummy: true, parent: parent, content: { title: "" } };
-          parent.children.unshift($scope.addingTag);
-        };
-
-        if ($scope.addingTag) {
-          if ($scope.addingTag.content.title.length == 0) {
-            return;
-          }
-
-          $scope.saveNewTag($scope.addingTag);
-          $timeout(addTag, 100);
-        } else {
-          addTag();
-        }
+      $scope.addChild = function ($event, parent) {
+        $event.stopPropagation();
+        var addingTag = { dummy: true, parent: parent, content: { title: "" } };
+        parent.children.unshift(addingTag);
       };
 
       $scope.saveNewTag = function (tag) {
-        tag.parentScope.addingTag = null;
         if (!tag.content.title || tag.content.title.length === 0) {
           tag.parent.children.slice(tag.parent.children.indexOf(tag), 0);
           return;
         }
-        tag.parentScope = null; // avoid json circular refs
         $scope.createTag()(tag);
       };
 

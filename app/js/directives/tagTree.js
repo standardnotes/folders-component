@@ -32,31 +32,17 @@ class TagTree {
       $scope.onSelect()($scope.tag);
     }
 
-    $scope.addChild = function(parent) {
-      var addTag = () => {
-        $scope.addingTag = {parentScope: $scope, dummy: true, parent: parent, content: {title: ""}};
-        parent.children.unshift($scope.addingTag);
-      }
-
-      if($scope.addingTag) {
-        if($scope.addingTag.content.title.length == 0) {
-          return;
-        }
-
-        $scope.saveNewTag($scope.addingTag);
-        $timeout(addTag, 100);
-      } else {
-        addTag();
-      }
+    $scope.addChild = function($event, parent) {
+      $event.stopPropagation();
+      var addingTag = {dummy: true, parent: parent, content: {title: ""}};
+      parent.children.unshift(addingTag);
     }
 
     $scope.saveNewTag = function(tag) {
-      tag.parentScope.addingTag = null;
       if(!tag.content.title || tag.content.title.length === 0) {
         tag.parent.children.slice(tag.parent.children.indexOf(tag), 0);
         return;
       }
-      tag.parentScope = null; // avoid json circular refs
       $scope.createTag()(tag);
     }
 

@@ -26,10 +26,10 @@ angular.module('app').run(['$templateCache', function($templateCache) {
     "<input class='title' mb-autofocus='true' ng-if='!tag.dummy &amp;&amp; tag.editing' ng-keyup='$event.keyCode == 13 &amp;&amp; saveTagRename(tag)' ng-model='tag.displayTitle' should-focus='true'>\n" +
     "<div class='hover-menu' ng-if='!tag.dummy &amp;&amp; !tag.editing &amp;&amp; tag.selected'>\n" +
     "<button class='half danger' ng-click='removeTag(tag); $event.stopPropagation();' ng-if='!tag.master'>–</button>\n" +
-    "<button ng-click='addChild(tag); $event.stopPropagation();'>+</button>\n" +
+    "<button ng-click='addChild($event, tag);'>+</button>\n" +
     "</div>\n" +
     "<div class='new-tag-form' ng-if='tag.dummy'>\n" +
-    "<input mb-autofocus='true' ng-keyup='$event.keyCode == 13 &amp;&amp; saveNewTag(tag)' ng-model='tag.content.title' placeholder='' should-focus='true'>\n" +
+    "<input mb-autofocus='true' ng-blur='saveNewTag(tag)' ng-keyup='$event.keyCode == 13 &amp;&amp; saveNewTag(tag)' ng-model='tag.content.title' placeholder='' should-focus='true'>\n" +
     "</div>\n" +
     "</div>\n" +
     "</div>\n" +
