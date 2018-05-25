@@ -34568,7 +34568,7 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
           })[0];
           if (existing) {
             Object.assign(existing, tag);
-          } else {
+          } else if (tag.content.title) {
             allTags.push(tag);
           }
         }
