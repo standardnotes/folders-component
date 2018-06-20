@@ -34571,6 +34571,11 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
           } else if (tag.content.title) {
             allTags.push(tag);
           }
+
+          if (tag.deleted) {
+            var index = allTags.indexOf(existing || tag);
+            allTags.splice(index, 1);
+          }
         }
       } catch (err) {
         _didIteratorError7 = true;
@@ -34603,6 +34608,10 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
       if (!$scope.selectedTag || $scope.selectedTag && $scope.selectedTag.master) {
         $scope.selectedTag = $scope.masterTag;
         $scope.selectedTag.selected = true;
+      }
+
+      if ($scope.selectedTag.deleted) {
+        $scope.selectTag($scope.masterTag);
       }
 
       $scope.resolveRawTags();
