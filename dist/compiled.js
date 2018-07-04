@@ -34524,10 +34524,14 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
       // Create smart tag
       /*
       !["Tagless", "tags.length", "=", 0]
+      !["Tag Starting with A", "tags", "includes", ["title", "startsWith", "a"]]
       !["Foo Notes", "title", "startsWith", "Foo"]
+      !["Archived", "archived", "=", true]
+      !["Pinned", "pinned", "=", true]
       !["Recently Edited", "updated_at", ">", "1.hours.ago"]
       !["Long", "text.length", ">", 500]
       */
+      console.log("Parsing json", title.substring(1, title.length));
       var components = JSON.parse(title.substring(1, title.length));
       var smartTag = {
         content_type: smartTagContentType,
