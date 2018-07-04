@@ -17,7 +17,7 @@ angular.module('app').run(['$templateCache', function($templateCache) {
 
   $templateCache.put('directives/tag_tree.html',
     "<div ng-if='tag'>\n" +
-    "<div class='self' draggable='true' drop='onDrop' is-draggable='!tag.master' ng-class='{&#39;selected&#39; : tag.selected}' ng-click='selectTag()' tag-id='tag.uuid'>\n" +
+    "<div class='self' draggable='true' drop='onDrop' is-draggable='!tag.master &amp;&amp; tag.content_type != &#39;SN|SmartTag&#39;' ng-class='{&#39;selected&#39; : tag.selected}' ng-click='selectTag()' tag-id='tag.uuid'>\n" +
     "<div class='tag-info body-text-color' ng-class='&#39;level-&#39; + generationForTag(tag)'>\n" +
     "<div class='circle small' ng-class='circleClassForTag(tag)'></div>\n" +
     "<div class='title' ng-if='!tag.dummy &amp;&amp; !tag.editing'>\n" +
@@ -46,6 +46,7 @@ angular.module('app').run(['$templateCache', function($templateCache) {
     "<div class='header'>\n" +
     "<h4 class='body-text-color'>Folders</h4>\n" +
     "</div>\n" +
+    "<div class='tag-tree master' create-tag='createTag' delete-tag='deleteTag' ng-if='smartMasterTag.rawTags.length &gt; 0' on-select='selectTag' save-tags='saveTags' tag='smartMasterTag'></div>\n" +
     "<div change-parent='changeParent' class='tag-tree master' create-tag='createTag' delete-tag='deleteTag' on-select='selectTag' save-tags='saveTags' tag='masterTag'></div>\n" +
     "</div>\n" +
     "</div>\n"

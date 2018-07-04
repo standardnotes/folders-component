@@ -39,11 +39,10 @@ class TagTree {
     }
 
     $scope.saveNewTag = function(tag) {
-      if(!tag.content.title || tag.content.title.length === 0) {
-        tag.parent.children.slice(tag.parent.children.indexOf(tag), 0);
-        return;
+      if(tag.content.title && tag.content.title.length > 0) {
+        $scope.createTag()(tag);
       }
-      $scope.createTag()(tag);
+      tag.parent.children.splice(tag.parent.children.indexOf(tag), 1);
     }
 
     $scope.removeTag = function(tag) {
@@ -93,6 +92,10 @@ class TagTree {
     }
 
     $scope.circleClassForTag = function(tag) {
+      if(tag.content_type == "SN|SmartTag") {
+        return "success";
+      }
+
       let gen = $scope.generationForTag(tag);
       var circleClass = {
         0: "info",
