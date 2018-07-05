@@ -111,7 +111,7 @@ class HomeCtrl {
         // Create smart tag
         /*
         !["Tagless", "tags.length", "=", 0]
-        !["Tag Starting with A", "tags", "includes", ["title", "startsWith", "a"]]
+        !["B-tags", "tags", "includes", ["title", "startsWith", "b"]]
         !["Foo Notes", "title", "startsWith", "Foo"]
         !["Archived", "archived", "=", true]
         !["Pinned", "pinned", "=", true]
@@ -179,7 +179,7 @@ class HomeCtrl {
       componentManager.saveItems(tags);
     }
 
-    componentManager.streamItems(["Tag", smartTagContentType], function(newTags) {
+    componentManager.streamItems(["Tag", smartTagContentType], (newTags) => {
       $timeout(function(){
         var allTags = $scope.masterTag ? $scope.masterTag.rawTags : [];
         var smartTags = $scope.smartMasterTag ? $scope.smartMasterTag.rawTags : [];
@@ -202,7 +202,8 @@ class HomeCtrl {
             arrayToUse.splice(index, 1);
           } else {
             if(existing && $scope.selectedTag.uuid == existing.uuid) {
-              $scope.selectTag(existing);
+              // Don't call $scope.selectTag(existing) as this will double select a tag, which will enable editing for it.
+              existing.selected = true;
             }
           }
         }
@@ -225,7 +226,7 @@ class HomeCtrl {
             content: {
               title: ""
             },
-            displayTitle: "Smart Tags",
+            displayTitle: "Views",
             uuid: "1"
           }
         }
@@ -251,7 +252,7 @@ class HomeCtrl {
         $scope.resolveRawTags($scope.masterTag);
         $scope.resolveRawTags($scope.smartMasterTag);
       })
-    }.bind(this));
+    });
 
     $scope.deleteTag = function(tag) {
       var isSmartTag = tag.content_type == smartTagContentType;
