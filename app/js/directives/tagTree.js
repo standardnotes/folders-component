@@ -111,7 +111,13 @@ class TagTree {
         return "success";
       }
 
-      if(tag.clientData.collapsed) {
+      // is newly creating tag
+      if(!tag.uuid) {
+        return "default";
+      }
+
+      // Newly creating tags don't have client data
+      if(tag.clientData && tag.clientData.collapsed) {
         return "warning";
       }
 

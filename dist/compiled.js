@@ -34520,7 +34520,7 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
 
   $scope.createTag = function (tag) {
     var title = tag.content.title;
-    if (title.startsWith("!")) {
+    if (title.startsWith("![")) {
       // Create smart tag
       /*
       !["Tagless", "tags.length", "=", 0]
@@ -34532,8 +34532,12 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
       !["Recently Edited", "updated_at", ">", "1.hours.ago"]
       !["Long", "text.length", ">", 500]
       */
-      console.log("Parsing json", title.substring(1, title.length));
-      var components = JSON.parse(title.substring(1, title.length));
+      try {
+        var components = JSON.parse(title.substring(1, title.length));
+      } catch (e) {
+        alert("There was an error parsing your smart tag syntax. Please ensure the value after the exclamation mark is valid JSON, and try again.");
+        return;
+      }
       var smartTag = {
         content_type: smartTagContentType,
         content: {
@@ -34985,7 +34989,13 @@ var TagTree = function () {
           return "success";
         }
 
-        if (tag.clientData.collapsed) {
+        // is newly creating tag
+        if (!tag.uuid) {
+          return "default";
+        }
+
+        // Newly creating tags don't have client data
+        if (tag.clientData && tag.clientData.collapsed) {
           return "warning";
         }
 

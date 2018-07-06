@@ -107,7 +107,7 @@ class HomeCtrl {
 
     $scope.createTag = function(tag) {
       var title = tag.content.title;
-      if(title.startsWith("!")) {
+      if(title.startsWith("![")) {
         // Create smart tag
         /*
         !["Tagless", "tags.length", "=", 0]
@@ -119,8 +119,12 @@ class HomeCtrl {
         !["Recently Edited", "updated_at", ">", "1.hours.ago"]
         !["Long", "text.length", ">", 500]
         */
-        console.log("Parsing json", title.substring(1, title.length));
-        var components = JSON.parse(title.substring(1, title.length));
+        try {
+          var components = JSON.parse(title.substring(1, title.length));
+        } catch (e) {
+          alert("There was an error parsing your smart tag syntax. Please ensure the value after the exclamation mark is valid JSON, and try again.")
+          return;
+        }
         var smartTag = {
           content_type: smartTagContentType,
           content: {
