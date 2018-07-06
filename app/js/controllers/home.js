@@ -115,6 +115,7 @@ class HomeCtrl {
         !["Foo Notes", "title", "startsWith", "Foo"]
         !["Archived", "archived", "=", true]
         !["Pinned", "pinned", "=", true]
+        !["Not Pinned", "pinned", "=", false]
         !["Recently Edited", "updated_at", ">", "1.hours.ago"]
         !["Long", "text.length", ">", 500]
         */
@@ -175,12 +176,19 @@ class HomeCtrl {
       tag.selected = true;
     }
 
+    $scope.toggleCollapse = function(tag) {
+      tag.clientData.collapsed = !tag.clientData.collapsed;
+      if(!tag.master) {
+        componentManager.saveItem(tag);
+      }
+    }
+
     $scope.saveTags = function(tags) {
       componentManager.saveItems(tags);
     }
 
     componentManager.streamItems(["Tag", smartTagContentType], (newTags) => {
-      $timeout(function(){
+      $timeout(() => {
         var allTags = $scope.masterTag ? $scope.masterTag.rawTags : [];
         var smartTags = $scope.smartMasterTag ? $scope.smartMasterTag.rawTags : [];
         for(var tag of newTags) {
@@ -215,7 +223,8 @@ class HomeCtrl {
               title: ""
             },
             displayTitle: "All",
-            uuid: "0"
+            uuid: "0",
+            clientData: {}
           }
         }
 
@@ -227,7 +236,8 @@ class HomeCtrl {
               title: ""
             },
             displayTitle: "Views",
-            uuid: "1"
+            uuid: "1",
+            clientData: {}
           }
         }
 

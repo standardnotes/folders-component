@@ -9,12 +9,21 @@ class TagTree {
       onSelect: "&",
       createTag: "&",
       saveTags: "&",
-      deleteTag: "&"
+      deleteTag: "&",
+      onToggleCollapse: "&"
     };
   }
 
   controller($scope, $timeout) {
     'ngInject';
+
+    $scope.isDraggable = function() {
+      return !$scope.tag.master && $scope.tag.content_type != 'SN|SmartTag';
+    }
+
+    $scope.isDroppable = function() {
+      return !$scope.tag.smartMaster && $scope.tag.content_type != 'SN|SmartTag';
+    }
 
     $scope.onDrop = function(sourceId, targetId) {
       $scope.changeParent()(sourceId, targetId);
@@ -47,6 +56,12 @@ class TagTree {
 
     $scope.removeTag = function(tag) {
       $scope.deleteTag()(tag);
+    }
+
+    $scope.innerCollapse = function(tag) {
+      if($scope.onToggleCollapse()) {
+        $scope.onToggleCollapse()(tag);
+      }
     }
 
     $scope.saveTagRename = function(tag) {
@@ -94,6 +109,10 @@ class TagTree {
     $scope.circleClassForTag = function(tag) {
       if(tag.content_type == "SN|SmartTag") {
         return "success";
+      }
+
+      if(tag.clientData.collapsed) {
+        return "warning";
       }
 
       let gen = $scope.generationForTag(tag);
