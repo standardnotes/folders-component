@@ -34433,7 +34433,7 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
 
         if ($scope.selectedTag && $scope.selectedTag.uuid == tag.uuid) {
           $scope.selectedTag = tag;
-          tag.selected = true;
+          $scope.setSelectedForTag(tag, true);
         }
       }
     } catch (err) {
@@ -34523,13 +34523,13 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
     if (title.startsWith("![")) {
       // Create smart tag
       /*
-      !["Tagless", "tags.length", "=", 0]
+      !["Untagged", "tags.length", "=", 0]
       !["B-tags", "tags", "includes", ["title", "startsWith", "b"]]
       !["Foo Notes", "title", "startsWith", "Foo"]
       !["Archived", "archived", "=", true]
       !["Pinned", "pinned", "=", true]
       !["Not Pinned", "pinned", "=", false]
-      !["Recently Edited", "updated_at", ">", "1.hours.ago"]
+      !["Last Day", "updated_at", ">", "1.days.ago"]
       !["Long", "text.length", ">", 500]
       */
       try {
@@ -34550,9 +34550,10 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
         }
       };
       componentManager.createItem(smartTag, function (createdTag) {
-        $timeout(function () {
-          $scope.selectTag(createdTag);
-        });
+        // We don't want to select the tag right away because it hasn't been added yet.
+        // If you do $scope.selectTag(createdTag), an issue occurs where selecting another tag
+        // after that will not dehighlight this one.
+        $scope.selectOnLoad = createdTag;
       });
     } else {
       tag.content_type = "Tag";
@@ -34565,9 +34566,7 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
       tag.content.title = title;
       tag.dummy = false;
       componentManager.createItem(tag, function (createdTag) {
-        $timeout(function () {
-          $scope.selectTag(createdTag);
-        });
+        $scope.selectOnLoad = createdTag;
       });
     }
   };
@@ -34582,15 +34581,16 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
     }
 
     if ($scope.selectedTag && $scope.selectedTag != tag) {
-      $scope.selectedTag.selected = false;
+      $scope.setSelectedForTag($scope.selectedTag, false);
       $scope.selectedTag.editing = false;
     }
 
     if ($scope.selectedTag === tag && !tag.master) {
       tag.editing = true;
     }
+
     $scope.selectedTag = tag;
-    tag.selected = true;
+    $scope.setSelectedForTag(tag, true);
   };
 
   $scope.toggleCollapse = function (tag) {
@@ -34602,6 +34602,10 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
 
   $scope.saveTags = function (tags) {
     componentManager.saveItems(tags);
+  };
+
+  $scope.setSelectedForTag = function (tag, selected) {
+    tag.selected = selected;
   };
 
   componentManager.streamItems(["Tag", smartTagContentType], function (newTags) {
@@ -34633,9 +34637,12 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
             var index = arrayToUse.indexOf(existing || tag);
             arrayToUse.splice(index, 1);
           } else {
-            if (existing && $scope.selectedTag.uuid == existing.uuid) {
+            if ($scope.selectOnLoad && $scope.selectOnLoad.uuid == tag.uuid) {
+              $scope.selectOnLoad = null;
+              $scope.selectTag(tag);
+            } else if (existing && $scope.selectedTag.uuid == existing.uuid) {
               // Don't call $scope.selectTag(existing) as this will double select a tag, which will enable editing for it.
-              existing.selected = true;
+              $scope.setSelectedForTag(existing, true);
             }
           }
         }
@@ -34685,12 +34692,12 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
       if (!$scope.selectedTag || $scope.selectedTag && $scope.selectedTag.master) {
         if ($scope.selectedTag && $scope.selectedTag.smartMaster) {
           $scope.selectedTag = $scope.smartMasterTag;
-          $scope.masterTag.selected = false;
+          $scope.setSelectedForTag($scope.masterTag, false);
         } else {
           $scope.selectedTag = $scope.masterTag;
-          $scope.smartMasterTag.selected = false;
+          $scope.setSelectedForTag($scope.smartMasterTag, false);
         }
-        $scope.selectedTag.selected = true;
+        $scope.setSelectedForTag($scope.selectedTag, true);
       }
 
       if ($scope.selectedTag.deleted) {
