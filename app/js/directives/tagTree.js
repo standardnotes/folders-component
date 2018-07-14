@@ -9,12 +9,21 @@ class TagTree {
       onSelect: "&",
       createTag: "&",
       saveTags: "&",
-      deleteTag: "&"
+      deleteTag: "&",
+      onToggleCollapse: "&"
     };
   }
 
   controller($scope, $timeout) {
     'ngInject';
+
+    $scope.isDraggable = function() {
+      return !$scope.tag.master && $scope.tag.content_type != 'SN|SmartTag';
+    }
+
+    $scope.isDroppable = function() {
+      return !$scope.tag.smartMaster && $scope.tag.content_type != 'SN|SmartTag';
+    }
 
     $scope.onDrop = function(sourceId, targetId) {
       $scope.changeParent()(sourceId, targetId);
@@ -39,15 +48,20 @@ class TagTree {
     }
 
     $scope.saveNewTag = function(tag) {
-      if(!tag.content.title || tag.content.title.length === 0) {
-        tag.parent.children.slice(tag.parent.children.indexOf(tag), 0);
-        return;
+      if(tag.content.title && tag.content.title.length > 0) {
+        $scope.createTag()(tag);
       }
-      $scope.createTag()(tag);
+      tag.parent.children.splice(tag.parent.children.indexOf(tag), 1);
     }
 
     $scope.removeTag = function(tag) {
       $scope.deleteTag()(tag);
+    }
+
+    $scope.innerCollapse = function(tag) {
+      if($scope.onToggleCollapse()) {
+        $scope.onToggleCollapse()(tag);
+      }
     }
 
     $scope.saveTagRename = function(tag) {
@@ -93,6 +107,20 @@ class TagTree {
     }
 
     $scope.circleClassForTag = function(tag) {
+      if(tag.content_type == "SN|SmartTag") {
+        return "success";
+      }
+
+      // is newly creating tag
+      if(!tag.uuid) {
+        return "default";
+      }
+
+      // Newly creating tags don't have client data
+      if(tag.clientData && tag.clientData.collapsed) {
+        return "warning";
+      }
+
       let gen = $scope.generationForTag(tag);
       var circleClass = {
         0: "info",

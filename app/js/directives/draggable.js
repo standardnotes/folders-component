@@ -5,7 +5,8 @@ angular
     scope: {
       tagId: "=",
       drop: '&',
-      isDraggable: "="
+      isDraggable: "=",
+      isDroppable: "="
     },
     link: function(scope, element, attrs) {
       // 'ngInject';
@@ -43,7 +44,7 @@ angular
           e.dataTransfer.dropEffect = 'move';
           // allows us to drop
           if (e.preventDefault) e.preventDefault();
-          this.classList.add('over');
+          if(scope.isDroppable) { this.classList.add('over'); }
           return false;
         },
         false
@@ -53,7 +54,7 @@ angular
         'dragenter',
         function(e) {
           counter++;
-          this.classList.add('over');
+          if(scope.isDroppable) { this.classList.add('over'); }
           return false;
         },
         false

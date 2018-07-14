@@ -1,20 +1,22 @@
 class HomeCtrl {
   constructor($rootScope, $scope, $timeout) {
 
+    let smartTagContentType = "SN|SmartTag";
+
     let componentManager = new window.ComponentManager([], function(){
       // on ready
     });
 
     let delimiter = ".";
 
-    $scope.resolveRawTags = function() {
+    $scope.resolveRawTags = function(masterTag) {
       let sortTags = (tags) => {
         return tags.sort((a, b) => (a.content.title > b.content.title) - (a.content.title < b.content.title));
       }
-      var resolved = $scope.masterTag.rawTags.slice();
+      var resolved = masterTag.rawTags.slice();
 
       var findResolvedTag = function(title) {
-        for(var tag of $scope.masterTag.rawTags) {
+        for(var tag of masterTag.rawTags) {
           if(tag.content.title === title) {
             return tag;
           }
@@ -22,7 +24,7 @@ class HomeCtrl {
         return null;
       }
 
-      for(var tag of $scope.masterTag.rawTags) {
+      for(var tag of masterTag.rawTags) {
         var pendingDummy = tag.children && tag.children.find((c) => {return c.dummy});
         tag.children = [];
         tag.parent = null;
@@ -32,12 +34,12 @@ class HomeCtrl {
         }
       };
 
-      for(var tag of $scope.masterTag.rawTags) {
+      for(var tag of masterTag.rawTags) {
         var name = tag.content.title;
         var comps = name.split(delimiter);
         tag.displayTitle = comps[comps.length -1];
         if(comps.length == 1) {
-          tag.parent = $scope.masterTag;
+          tag.parent = masterTag;
           continue;
         }
 
@@ -57,13 +59,13 @@ class HomeCtrl {
 
         if($scope.selectedTag && $scope.selectedTag.uuid == tag.uuid) {
           $scope.selectedTag = tag;
-          tag.selected = true;
+          $scope.setSelectedForTag(tag, true);
         }
       }
 
-      var pendingDummy = $scope.masterTag.children && $scope.masterTag.children.find((c) => {return c.dummy});
-      $scope.masterTag.children = sortTags(resolved);
-      if(pendingDummy) { $scope.masterTag.children.unshift(pendingDummy); }
+      var pendingDummy = masterTag.children && masterTag.children.find((c) => {return c.dummy});
+      masterTag.children = sortTags(resolved);
+      if(pendingDummy) { masterTag.children.unshift(pendingDummy); }
     }
 
     $scope.changeParent = function(sourceId, targetId) {
@@ -98,63 +100,130 @@ class HomeCtrl {
       }
       source.content.title = newTitle;
       adjustChildren(source);
-      $scope.resolveRawTags();
+      $scope.resolveRawTags($scope.masterTag);
 
       componentManager.saveItems(needsSave);
     }
 
     $scope.createTag = function(tag) {
-      tag.content_type = "Tag";
-      var title;
-      if(tag.parent.master) {
-        title = tag.content.title;
+      var title = tag.content.title;
+      if(title.startsWith("![")) {
+        // Create smart tag
+        /*
+        !["Untagged", "tags.length", "=", 0]
+        !["B-tags", "tags", "includes", ["title", "startsWith", "b"]]
+        !["Foo Notes", "title", "startsWith", "Foo"]
+        !["Archived", "archived", "=", true]
+        !["Pinned", "pinned", "=", true]
+        !["Not Pinned", "pinned", "=", false]
+        !["Last Day", "updated_at", ">", "1.days.ago"]
+        !["Long", "text.length", ">", 500]
+        */
+        try {
+          var components = JSON.parse(title.substring(1, title.length));
+        } catch (e) {
+          alert("There was an error parsing your smart tag syntax. Please ensure the value after the exclamation mark is valid JSON, and try again.")
+          return;
+        }
+        var smartTag = {
+          content_type: smartTagContentType,
+          content: {
+            title: components[0],
+            predicate: {
+              keypath: components[1],
+              operator: components[2],
+              value: components[3]
+            }
+          }
+        }
+        componentManager.createItem(smartTag, (createdTag) => {
+          // We don't want to select the tag right away because it hasn't been added yet.
+          // If you do $scope.selectTag(createdTag), an issue occurs where selecting another tag
+          // after that will not dehighlight this one.
+          $scope.selectOnLoad = createdTag;
+        });
       } else {
-        title = tag.parent.content.title + delimiter + tag.content.title;
+        tag.content_type = "Tag";
+        var title;
+        if(tag.parent.master) {
+          title = tag.content.title;
+        } else {
+          title = tag.parent.content.title + delimiter + tag.content.title;
+        }
+        tag.content.title = title;
+        tag.dummy = false;
+        componentManager.createItem(tag, (createdTag) => {
+          $scope.selectOnLoad = createdTag;
+        });
       }
-      tag.content.title = title;
-      tag.dummy = false;
-      componentManager.createItem(tag);
     }
 
     $scope.selectTag = function(tag) {
-      if(tag.master) {
+      if(tag.smartMaster) {
+        // do nothing, but continue to other steps
+      } else if(tag.master) {
         componentManager.clearSelection();
       } else {
         componentManager.selectItem(tag);
       }
 
       if($scope.selectedTag && $scope.selectedTag != tag) {
-        $scope.selectedTag.selected = false;
+        $scope.setSelectedForTag($scope.selectedTag, false);
         $scope.selectedTag.editing = false;
       }
 
       if($scope.selectedTag === tag && !tag.master) {
         tag.editing = true;
       }
+
       $scope.selectedTag = tag;
-      tag.selected = true;
+      $scope.setSelectedForTag(tag, true);
+    }
+
+    $scope.toggleCollapse = function(tag) {
+      tag.clientData.collapsed = !tag.clientData.collapsed;
+      if(!tag.master) {
+        componentManager.saveItem(tag);
+      }
     }
 
     $scope.saveTags = function(tags) {
       componentManager.saveItems(tags);
     }
 
-    componentManager.streamItems("Tag", function(newTags) {
-      $timeout(function(){
+    $scope.setSelectedForTag = function(tag, selected) {
+      tag.selected = selected;
+    }
+
+    componentManager.streamItems(["Tag", smartTagContentType], (newTags) => {
+      $timeout(() => {
         var allTags = $scope.masterTag ? $scope.masterTag.rawTags : [];
+        var smartTags = $scope.smartMasterTag ? $scope.smartMasterTag.rawTags : [];
         for(var tag of newTags) {
-          var existing = allTags.filter(function(tagCandidate){
+          var isSmartTag = tag.content_type == smartTagContentType;
+          var arrayToUse = isSmartTag ? smartTags : allTags;
+
+          var existing = arrayToUse.filter((tagCandidate) => {
             return tagCandidate.uuid === tag.uuid;
           })[0];
+
           if(existing) {
             Object.assign(existing, tag);
           } else if(tag.content.title) {
-            allTags.push(tag);
+            arrayToUse.push(tag);
           }
 
           if(tag.deleted) {
-            var index = allTags.indexOf(existing || tag);
-            allTags.splice(index, 1);
+            var index = arrayToUse.indexOf(existing || tag);
+            arrayToUse.splice(index, 1);
+          } else {
+            if($scope.selectOnLoad && $scope.selectOnLoad.uuid == tag.uuid)  {
+              $scope.selectOnLoad = null;
+              $scope.selectTag(tag);
+            } else if(existing && $scope.selectedTag.uuid == existing.uuid) {
+              // Don't call $scope.selectTag(existing) as this will double select a tag, which will enable editing for it.
+              $scope.setSelectedForTag(existing, true);
+            }
           }
         }
 
@@ -165,33 +234,63 @@ class HomeCtrl {
               title: ""
             },
             displayTitle: "All",
-            uuid: "0"
+            uuid: "0",
+            clientData: {}
+          }
+        }
+
+        if(!$scope.smartMasterTag) {
+          $scope.smartMasterTag = {
+            master: true,
+            smartMaster: true,
+            content: {
+              title: ""
+            },
+            displayTitle: "Views",
+            uuid: "1",
+            clientData: {}
           }
         }
 
         $scope.masterTag.rawTags = allTags;
+        $scope.smartMasterTag.rawTags = smartTags;
 
         if(!$scope.selectedTag || ($scope.selectedTag && $scope.selectedTag.master)) {
-          $scope.selectedTag = $scope.masterTag;
-          $scope.selectedTag.selected = true;
+          if($scope.selectedTag && $scope.selectedTag.smartMaster) {
+            $scope.selectedTag = $scope.smartMasterTag;
+            $scope.setSelectedForTag($scope.masterTag, false);
+          } else {
+            $scope.selectedTag = $scope.masterTag;
+            $scope.setSelectedForTag($scope.smartMasterTag, false);
+          }
+          $scope.setSelectedForTag($scope.selectedTag, true);
         }
 
         if($scope.selectedTag.deleted) {
           $scope.selectTag($scope.masterTag);
         }
 
-        $scope.resolveRawTags();
+        $scope.resolveRawTags($scope.masterTag);
+        $scope.resolveRawTags($scope.smartMasterTag);
       })
-    }.bind(this));
+    });
 
     $scope.deleteTag = function(tag) {
-      var tag = $scope.masterTag.rawTags.filter(function(candidate){return candidate.uuid === tag.uuid})[0];
+      var isSmartTag = tag.content_type == smartTagContentType;
+      var arrayToUse = isSmartTag ? $scope.smartMasterTag.rawTags : $scope.masterTag.rawTags;
+
+      var tag = arrayToUse.filter(function(tagCandidate){
+        return tagCandidate.uuid === tag.uuid;
+      })[0];
+
       var deleteChain = [];
 
       function addChildren(tag) {
         deleteChain.push(tag);
-        for(var child of tag.children) {
-          addChildren(child);
+        if(tag.children) {
+          for(var child of tag.children) {
+            addChildren(child);
+          }
         }
       }
 
@@ -200,7 +299,6 @@ class HomeCtrl {
       componentManager.deleteItems(deleteChain);
     }
   }
-
 }
 
 // required for firefox

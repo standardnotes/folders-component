@@ -33911,6 +33911,8 @@ function _classCallCheck(instance, Constructor) {
 
 var ComponentManager = function () {
   function ComponentManager(permissions, onReady) {
+    var _this = this;
+
     _classCallCheck(this, ComponentManager);
 
     this.sentMessages = [];
@@ -33923,12 +33925,32 @@ var ComponentManager = function () {
     this.coallesedSaving = true;
     this.coallesedSavingDelay = 250;
 
-    window.addEventListener("message", function (event) {
-      if (this.loggingEnabled) {
-        console.log("Components API Message received:", event.data);
+    var messageHandler = function messageHandler(event, mobileSource) {
+      if (_this.loggingEnabled) {
+        console.log("Components API Message received:", event.data, "mobile?", mobileSource);
       }
-      this.handleMessage(event.data);
-    }.bind(this), false);
+
+      // The first message will be the most reliable one, so we won't change it after any subsequent events,
+      // in case you receive an event from another window.
+      if (!_this.origin) {
+        _this.origin = event.origin;
+      }
+      _this.mobileSource = mobileSource;
+      // If from mobile app, JSON needs to be used.
+      var data = mobileSource ? JSON.parse(event.data) : event.data;
+      _this.handleMessage(data);
+    };
+
+    // Mobile (React Native) uses `document`, web/desktop uses `window`.addEventListener
+    // for postMessage API to work properly.
+
+    document.addEventListener("message", function (event) {
+      messageHandler(event, true);
+    }, false);
+
+    window.addEventListener("message", function (event) {
+      messageHandler(event, false);
+    }, false);
   }
 
   _createClass(ComponentManager, [{
@@ -33951,6 +33973,11 @@ var ComponentManager = function () {
         var originalMessage = this.sentMessages.filter(function (message) {
           return message.messageId === payload.original.messageId;
         })[0];
+
+        if (!originalMessage) {
+          // Connection must have been reset. Alert the user.
+          alert("This extension is attempting to communicate with Standard Notes, but an error is preventing it from doing so. Please restart this extension and try again.");
+        }
 
         if (originalMessage.callback) {
           originalMessage.callback(payload.data);
@@ -34048,11 +34075,16 @@ var ComponentManager = function () {
       sentMessage.callback = callback;
       this.sentMessages.push(sentMessage);
 
+      // Mobile (React Native) requires a string for the postMessage API.
+      if (this.mobileSource) {
+        message = JSON.stringify(message);
+      }
+
       if (this.loggingEnabled) {
         console.log("Posting message:", message);
       }
 
-      window.parent.postMessage(message, '*');
+      window.parent.postMessage(message, this.origin);
     }
   }, {
     key: "setSize",
@@ -34107,8 +34139,27 @@ var ComponentManager = function () {
     value: function createItem(item, callback) {
       this.postMessage("create-item", { item: this.jsonObjectForItem(item) }, function (data) {
         var item = data.item;
+
+        // A previous version of the SN app had an issue where the item in the reply to create-item
+        // would be nested inside "items" and not "item". So handle both cases here.
+        if (!item && data.items && data.items.length > 0) {
+          item = data.items[0];
+        }
+
         this.associateItem(item);
         callback && callback(item);
+      }.bind(this));
+    }
+  }, {
+    key: "createItems",
+    value: function createItems(items, callback) {
+      var _this2 = this;
+
+      var mapped = items.map(function (item) {
+        return _this2.jsonObjectForItem(item);
+      });
+      this.postMessage("create-items", { items: mapped }, function (data) {
+        callback && callback(data.items);
       }.bind(this));
     }
   }, {
@@ -34151,12 +34202,22 @@ var ComponentManager = function () {
   }, {
     key: "saveItem",
     value: function saveItem(item, callback) {
-      this.saveItems([item], callback);
+      var skipDebouncer = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+
+      this.saveItems([item], callback, skipDebouncer);
     }
+
+    /*
+    skipDebouncer allows saves to go through right away rather than waiting for timeout.
+    This should be used when saving items via other means besides keystrokes.
+     */
+
   }, {
     key: "saveItems",
     value: function saveItems(items, callback) {
-      var _this = this;
+      var _this3 = this;
+
+      var skipDebouncer = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
 
       items = items.map(function (item) {
         item.updated_at = new Date();
@@ -34164,7 +34225,7 @@ var ComponentManager = function () {
       }.bind(this));
 
       var saveBlock = function saveBlock() {
-        _this.postMessage("save-items", { items: items }, function (data) {
+        _this3.postMessage("save-items", { items: items }, function (data) {
           callback && callback();
         });
       };
@@ -34178,7 +34239,7 @@ var ComponentManager = function () {
          Note: it's important to modify saving items updated_at immediately and not after delay. If you modify after delay,
         a delayed sync could just be wrapping up, and will send back old data and replace what the user has typed.
       */
-      if (this.coallesedSaving == true) {
+      if (this.coallesedSaving == true && !skipDebouncer) {
         if (this.pendingSave) {
           clearTimeout(this.pendingSave);
         }
@@ -34186,6 +34247,8 @@ var ComponentManager = function () {
         this.pendingSave = setTimeout(function () {
           saveBlock();
         }, this.coallesedSavingDelay);
+      } else {
+        saveBlock();
       }
     }
   }, {
@@ -34319,19 +34382,21 @@ angular.module('app', []);
 var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
   _classCallCheck2(this, HomeCtrl);
 
+  var smartTagContentType = "SN|SmartTag";
+
   var componentManager = new window.ComponentManager([], function () {
     // on ready
   });
 
   var delimiter = ".";
 
-  $scope.resolveRawTags = function () {
+  $scope.resolveRawTags = function (masterTag) {
     var sortTags = function sortTags(tags) {
       return tags.sort(function (a, b) {
         return (a.content.title > b.content.title) - (a.content.title < b.content.title);
       });
     };
-    var resolved = $scope.masterTag.rawTags.slice();
+    var resolved = masterTag.rawTags.slice();
 
     var findResolvedTag = function findResolvedTag(title) {
       var _iteratorNormalCompletion3 = true;
@@ -34339,7 +34404,7 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
       var _iteratorError3 = undefined;
 
       try {
-        for (var _iterator3 = $scope.masterTag.rawTags[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+        for (var _iterator3 = masterTag.rawTags[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
           var tag = _step3.value;
 
           if (tag.content.title === title) {
@@ -34369,7 +34434,7 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
     var _iteratorError4 = undefined;
 
     try {
-      for (var _iterator4 = $scope.masterTag.rawTags[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+      for (var _iterator4 = masterTag.rawTags[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
         var tag = _step4.value;
 
         var pendingDummy = tag.children && tag.children.find(function (c) {
@@ -34404,14 +34469,14 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
     var _iteratorError5 = undefined;
 
     try {
-      for (var _iterator5 = $scope.masterTag.rawTags[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+      for (var _iterator5 = masterTag.rawTags[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
         var tag = _step5.value;
 
         var name = tag.content.title;
         var comps = name.split(delimiter);
         tag.displayTitle = comps[comps.length - 1];
         if (comps.length == 1) {
-          tag.parent = $scope.masterTag;
+          tag.parent = masterTag;
           continue;
         }
 
@@ -34431,7 +34496,7 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
 
         if ($scope.selectedTag && $scope.selectedTag.uuid == tag.uuid) {
           $scope.selectedTag = tag;
-          tag.selected = true;
+          $scope.setSelectedForTag(tag, true);
         }
       }
     } catch (err) {
@@ -34449,12 +34514,12 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
       }
     }
 
-    var pendingDummy = $scope.masterTag.children && $scope.masterTag.children.find(function (c) {
+    var pendingDummy = masterTag.children && masterTag.children.find(function (c) {
       return c.dummy;
     });
-    $scope.masterTag.children = sortTags(resolved);
+    masterTag.children = sortTags(resolved);
     if (pendingDummy) {
-      $scope.masterTag.children.unshift(pendingDummy);
+      masterTag.children.unshift(pendingDummy);
     }
   };
 
@@ -34511,50 +34576,105 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
     }
     source.content.title = newTitle;
     adjustChildren(source);
-    $scope.resolveRawTags();
+    $scope.resolveRawTags($scope.masterTag);
 
     componentManager.saveItems(needsSave);
   };
 
   $scope.createTag = function (tag) {
-    tag.content_type = "Tag";
-    var title;
-    if (tag.parent.master) {
-      title = tag.content.title;
+    var title = tag.content.title;
+    if (title.startsWith("![")) {
+      // Create smart tag
+      /*
+      !["Untagged", "tags.length", "=", 0]
+      !["B-tags", "tags", "includes", ["title", "startsWith", "b"]]
+      !["Foo Notes", "title", "startsWith", "Foo"]
+      !["Archived", "archived", "=", true]
+      !["Pinned", "pinned", "=", true]
+      !["Not Pinned", "pinned", "=", false]
+      !["Last Day", "updated_at", ">", "1.days.ago"]
+      !["Long", "text.length", ">", 500]
+      */
+      try {
+        var components = JSON.parse(title.substring(1, title.length));
+      } catch (e) {
+        alert("There was an error parsing your smart tag syntax. Please ensure the value after the exclamation mark is valid JSON, and try again.");
+        return;
+      }
+      var smartTag = {
+        content_type: smartTagContentType,
+        content: {
+          title: components[0],
+          predicate: {
+            keypath: components[1],
+            operator: components[2],
+            value: components[3]
+          }
+        }
+      };
+      componentManager.createItem(smartTag, function (createdTag) {
+        // We don't want to select the tag right away because it hasn't been added yet.
+        // If you do $scope.selectTag(createdTag), an issue occurs where selecting another tag
+        // after that will not dehighlight this one.
+        $scope.selectOnLoad = createdTag;
+      });
     } else {
-      title = tag.parent.content.title + delimiter + tag.content.title;
+      tag.content_type = "Tag";
+      var title;
+      if (tag.parent.master) {
+        title = tag.content.title;
+      } else {
+        title = tag.parent.content.title + delimiter + tag.content.title;
+      }
+      tag.content.title = title;
+      tag.dummy = false;
+      componentManager.createItem(tag, function (createdTag) {
+        $scope.selectOnLoad = createdTag;
+      });
     }
-    tag.content.title = title;
-    tag.dummy = false;
-    componentManager.createItem(tag);
   };
 
   $scope.selectTag = function (tag) {
-    if (tag.master) {
+    if (tag.smartMaster) {
+      // do nothing, but continue to other steps
+    } else if (tag.master) {
       componentManager.clearSelection();
     } else {
       componentManager.selectItem(tag);
     }
 
     if ($scope.selectedTag && $scope.selectedTag != tag) {
-      $scope.selectedTag.selected = false;
+      $scope.setSelectedForTag($scope.selectedTag, false);
       $scope.selectedTag.editing = false;
     }
 
     if ($scope.selectedTag === tag && !tag.master) {
       tag.editing = true;
     }
+
     $scope.selectedTag = tag;
-    tag.selected = true;
+    $scope.setSelectedForTag(tag, true);
+  };
+
+  $scope.toggleCollapse = function (tag) {
+    tag.clientData.collapsed = !tag.clientData.collapsed;
+    if (!tag.master) {
+      componentManager.saveItem(tag);
+    }
   };
 
   $scope.saveTags = function (tags) {
     componentManager.saveItems(tags);
   };
 
-  componentManager.streamItems("Tag", function (newTags) {
+  $scope.setSelectedForTag = function (tag, selected) {
+    tag.selected = selected;
+  };
+
+  componentManager.streamItems(["Tag", smartTagContentType], function (newTags) {
     $timeout(function () {
       var allTags = $scope.masterTag ? $scope.masterTag.rawTags : [];
+      var smartTags = $scope.smartMasterTag ? $scope.smartMasterTag.rawTags : [];
       var _iteratorNormalCompletion7 = true;
       var _didIteratorError7 = false;
       var _iteratorError7 = undefined;
@@ -34563,18 +34683,30 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
         for (var _iterator7 = newTags[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
           var tag = _step7.value;
 
-          var existing = allTags.filter(function (tagCandidate) {
+          var isSmartTag = tag.content_type == smartTagContentType;
+          var arrayToUse = isSmartTag ? smartTags : allTags;
+
+          var existing = arrayToUse.filter(function (tagCandidate) {
             return tagCandidate.uuid === tag.uuid;
           })[0];
+
           if (existing) {
             Object.assign(existing, tag);
           } else if (tag.content.title) {
-            allTags.push(tag);
+            arrayToUse.push(tag);
           }
 
           if (tag.deleted) {
-            var index = allTags.indexOf(existing || tag);
-            allTags.splice(index, 1);
+            var index = arrayToUse.indexOf(existing || tag);
+            arrayToUse.splice(index, 1);
+          } else {
+            if ($scope.selectOnLoad && $scope.selectOnLoad.uuid == tag.uuid) {
+              $scope.selectOnLoad = null;
+              $scope.selectTag(tag);
+            } else if (existing && $scope.selectedTag.uuid == existing.uuid) {
+              // Don't call $scope.selectTag(existing) as this will double select a tag, which will enable editing for it.
+              $scope.setSelectedForTag(existing, true);
+            }
           }
         }
       } catch (err) {
@@ -34599,54 +34731,82 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
             title: ""
           },
           displayTitle: "All",
-          uuid: "0"
+          uuid: "0",
+          clientData: {}
+        };
+      }
+
+      if (!$scope.smartMasterTag) {
+        $scope.smartMasterTag = {
+          master: true,
+          smartMaster: true,
+          content: {
+            title: ""
+          },
+          displayTitle: "Views",
+          uuid: "1",
+          clientData: {}
         };
       }
 
       $scope.masterTag.rawTags = allTags;
+      $scope.smartMasterTag.rawTags = smartTags;
 
       if (!$scope.selectedTag || $scope.selectedTag && $scope.selectedTag.master) {
-        $scope.selectedTag = $scope.masterTag;
-        $scope.selectedTag.selected = true;
+        if ($scope.selectedTag && $scope.selectedTag.smartMaster) {
+          $scope.selectedTag = $scope.smartMasterTag;
+          $scope.setSelectedForTag($scope.masterTag, false);
+        } else {
+          $scope.selectedTag = $scope.masterTag;
+          $scope.setSelectedForTag($scope.smartMasterTag, false);
+        }
+        $scope.setSelectedForTag($scope.selectedTag, true);
       }
 
       if ($scope.selectedTag.deleted) {
         $scope.selectTag($scope.masterTag);
       }
 
-      $scope.resolveRawTags();
+      $scope.resolveRawTags($scope.masterTag);
+      $scope.resolveRawTags($scope.smartMasterTag);
     });
-  }.bind(this));
+  });
 
   $scope.deleteTag = function (tag) {
-    var tag = $scope.masterTag.rawTags.filter(function (candidate) {
-      return candidate.uuid === tag.uuid;
+    var isSmartTag = tag.content_type == smartTagContentType;
+    var arrayToUse = isSmartTag ? $scope.smartMasterTag.rawTags : $scope.masterTag.rawTags;
+
+    var tag = arrayToUse.filter(function (tagCandidate) {
+      return tagCandidate.uuid === tag.uuid;
     })[0];
+
     var deleteChain = [];
 
     function addChildren(tag) {
       deleteChain.push(tag);
-      var _iteratorNormalCompletion8 = true;
-      var _didIteratorError8 = false;
-      var _iteratorError8 = undefined;
+      if (tag.children) {
+        var _iteratorNormalCompletion8 = true;
+        var _didIteratorError8 = false;
+        var _iteratorError8 = undefined;
 
-      try {
-        for (var _iterator8 = tag.children[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
-          var child = _step8.value;
-
-          addChildren(child);
-        }
-      } catch (err) {
-        _didIteratorError8 = true;
-        _iteratorError8 = err;
-      } finally {
         try {
-          if (!_iteratorNormalCompletion8 && _iterator8.return) {
-            _iterator8.return();
+          for (var _iterator8 = tag.children[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+            var child = _step8.value;
+
+            addChildren(child);
           }
+        } catch (err) {
+          _didIteratorError8 = true;
+          _iteratorError8 = err;
         } finally {
-          if (_didIteratorError8) {
-            throw _iteratorError8;
+          try {
+            if (!_iteratorNormalCompletion8 && _iterator8.return) {
+              _iterator8.return();
+            }
+          } finally {
+            if (_didIteratorError8) {
+              throw _iteratorError8;
+            }
           }
         }
       }
@@ -34685,7 +34845,8 @@ angular.module('app').controller('HomeCtrl', HomeCtrl);
     scope: {
       tagId: "=",
       drop: '&',
-      isDraggable: "="
+      isDraggable: "=",
+      isDroppable: "="
     },
     link: function link(scope, element, attrs) {
       // 'ngInject';
@@ -34713,13 +34874,17 @@ angular.module('app').controller('HomeCtrl', HomeCtrl);
         e.dataTransfer.dropEffect = 'move';
         // allows us to drop
         if (e.preventDefault) e.preventDefault();
-        this.classList.add('over');
+        if (scope.isDroppable) {
+          this.classList.add('over');
+        }
         return false;
       }, false);
 
       el.addEventListener('dragenter', function (e) {
         counter++;
-        this.classList.add('over');
+        if (scope.isDroppable) {
+          this.classList.add('over');
+        }
         return false;
       }, false);
 
@@ -34773,7 +34938,8 @@ var TagTree = function () {
       onSelect: "&",
       createTag: "&",
       saveTags: "&",
-      deleteTag: "&"
+      deleteTag: "&",
+      onToggleCollapse: "&"
     };
   }
 
@@ -34781,6 +34947,14 @@ var TagTree = function () {
     key: "controller",
     value: ['$scope', '$timeout', function controller($scope, $timeout) {
       'ngInject';
+
+      $scope.isDraggable = function () {
+        return !$scope.tag.master && $scope.tag.content_type != 'SN|SmartTag';
+      };
+
+      $scope.isDroppable = function () {
+        return !$scope.tag.smartMaster && $scope.tag.content_type != 'SN|SmartTag';
+      };
 
       $scope.onDrop = function (sourceId, targetId) {
         $scope.changeParent()(sourceId, targetId);
@@ -34801,15 +34975,20 @@ var TagTree = function () {
       };
 
       $scope.saveNewTag = function (tag) {
-        if (!tag.content.title || tag.content.title.length === 0) {
-          tag.parent.children.slice(tag.parent.children.indexOf(tag), 0);
-          return;
+        if (tag.content.title && tag.content.title.length > 0) {
+          $scope.createTag()(tag);
         }
-        $scope.createTag()(tag);
+        tag.parent.children.splice(tag.parent.children.indexOf(tag), 1);
       };
 
       $scope.removeTag = function (tag) {
         $scope.deleteTag()(tag);
+      };
+
+      $scope.innerCollapse = function (tag) {
+        if ($scope.onToggleCollapse()) {
+          $scope.onToggleCollapse()(tag);
+        }
       };
 
       $scope.saveTagRename = function (tag) {
@@ -34876,6 +35055,20 @@ var TagTree = function () {
       };
 
       $scope.circleClassForTag = function (tag) {
+        if (tag.content_type == "SN|SmartTag") {
+          return "success";
+        }
+
+        // is newly creating tag
+        if (!tag.uuid) {
+          return "default";
+        }
+
+        // Newly creating tags don't have client data
+        if (tag.clientData && tag.clientData.collapsed) {
+          return "warning";
+        }
+
         var gen = $scope.generationForTag(tag);
         var circleClass = {
           0: "info",
@@ -34920,9 +35113,9 @@ angular.module('app').directive('tagTree', function () {
 
   $templateCache.put('directives/tag_tree.html',
     "<div ng-if='tag'>\n" +
-    "<div class='self' draggable='true' drop='onDrop' is-draggable='!tag.master' ng-class='{&#39;selected&#39; : tag.selected}' ng-click='selectTag()' tag-id='tag.uuid'>\n" +
+    "<div class='self' draggable='true' drop='onDrop' is-draggable='isDraggable()' is-droppable='isDroppable()' ng-class='{&#39;selected&#39; : tag.selected}' ng-click='selectTag()' tag-id='tag.uuid'>\n" +
     "<div class='tag-info body-text-color' ng-class='&#39;level-&#39; + generationForTag(tag)'>\n" +
-    "<div class='circle small' ng-class='circleClassForTag(tag)'></div>\n" +
+    "<div class='circle small' ng-class='circleClassForTag(tag)' ng-click='innerCollapse(tag); $event.stopPropagation();'></div>\n" +
     "<div class='title' ng-if='!tag.dummy &amp;&amp; !tag.editing'>\n" +
     "{{tag.displayTitle}}\n" +
     "</div>\n" +
@@ -34936,8 +35129,8 @@ angular.module('app').directive('tagTree', function () {
     "</div>\n" +
     "</div>\n" +
     "</div>\n" +
-    "<div ng-repeat='child in tag.children'>\n" +
-    "<div change-parent='changeParent()' class='tag-tree' create-tag='createTag()' delete-tag='deleteTag()' ng-if='!child.deleted' on-select='onSelect()' save-tags='saveTags()' tag='child'></div>\n" +
+    "<div ng-if='!tag.clientData.collapsed' ng-repeat='child in tag.children'>\n" +
+    "<div change-parent='changeParent()' class='tag-tree' create-tag='createTag()' delete-tag='deleteTag()' ng-if='!child.deleted' on-select='onSelect()' on-toggle-collapse='onToggleCollapse()' save-tags='saveTags()' tag='child'></div>\n" +
     "</div>\n" +
     "</div>\n"
   );
@@ -34949,7 +35142,8 @@ angular.module('app').directive('tagTree', function () {
     "<div class='header'>\n" +
     "<h4 class='body-text-color'>Folders</h4>\n" +
     "</div>\n" +
-    "<div change-parent='changeParent' class='tag-tree master' create-tag='createTag' delete-tag='deleteTag' on-select='selectTag' save-tags='saveTags' tag='masterTag'></div>\n" +
+    "<div class='tag-tree master' create-tag='createTag' delete-tag='deleteTag' ng-if='smartMasterTag.rawTags.length &gt; 0' on-select='selectTag' on-toggle-collapse='toggleCollapse' save-tags='saveTags' tag='smartMasterTag'></div>\n" +
+    "<div change-parent='changeParent' class='tag-tree master' create-tag='createTag' delete-tag='deleteTag' on-select='selectTag' on-toggle-collapse='toggleCollapse' save-tags='saveTags' tag='masterTag'></div>\n" +
     "</div>\n" +
     "</div>\n"
   );
