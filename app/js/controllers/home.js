@@ -159,9 +159,7 @@ class HomeCtrl {
     }
 
     $scope.selectTag = function(tag) {
-      if(tag.smartMaster) {
-        // do nothing, but continue to other steps
-      } else if(tag.master) {
+      if(tag.master || tag.smartMaster) {
         componentManager.clearSelection();
       } else {
         componentManager.selectItem(tag);
