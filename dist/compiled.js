@@ -34656,16 +34656,71 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
     }
   };
 
-  $scope.selectTag = function (tag) {
-    if (tag.master || tag.smartMaster) {
-      componentManager.clearSelection();
-    } else {
-      componentManager.selectItem(tag);
+  $scope.selectTag = function (tag, multiSelect) {
+
+    var isSmartTag = tag.content_type == smartTagContentType;
+    // Multi selection for smart tags is not possible.
+    if (isSmartTag) {
+      multiSelect = false;
     }
 
-    if ($scope.selectedTag && $scope.selectedTag != tag) {
+    var clearMultipleTagsSelection = function clearMultipleTagsSelection() {
+      var _iteratorNormalCompletion8 = true;
+      var _didIteratorError8 = false;
+      var _iteratorError8 = undefined;
+
+      try {
+        for (var _iterator8 = $scope.multipleTags[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+          var selectedTag = _step8.value;
+
+          $scope.setSelectedForTag(selectedTag, false);
+        }
+      } catch (err) {
+        _didIteratorError8 = true;
+        _iteratorError8 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion8 && _iterator8.return) {
+            _iterator8.return();
+          }
+        } finally {
+          if (_didIteratorError8) {
+            throw _iteratorError8;
+          }
+        }
+      }
+    };
+
+    if (tag.master || tag.smartMaster) {
+      clearMultipleTagsSelection();
+      $scope.multipleTags = [];
+      componentManager.clearSelection();
+    } else {
+      if (!$scope.multipleTags) {
+        $scope.multipleTags = [];
+      }
+      if (!isSmartTag) {
+        $scope.multipleTags.push(tag);
+      }
+      if (multiSelect && $scope.multipleTags.length > 1) {
+        var smartTag = $scope.createEphemeralSmartTagForMultiTags();
+        componentManager.selectItem(smartTag);
+      } else {
+        clearMultipleTagsSelection();
+        $scope.multipleTags = isSmartTag ? [] : [tag];
+        componentManager.selectItem(tag);
+      }
+    }
+
+    // if multiselect, we don't want to clear selected tag. But if master is selected,
+    // and multi select other tag, we do want to clear master. Rather than creating a large if
+    // statement, we'll just an if else.
+
+    if (!multiSelect && $scope.selectedTag && $scope.selectedTag != tag) {
       $scope.setSelectedForTag($scope.selectedTag, false);
       $scope.selectedTag.editing = false;
+    } else if ($scope.selectedTag.master || $scope.selectedTag.smartMaster || $scope.selectedTag.content_type == smartTagContentType) {
+      $scope.setSelectedForTag($scope.selectedTag, false);
     }
 
     if ($scope.selectedTag === tag && !tag.master) {
@@ -34674,6 +34729,23 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
 
     $scope.selectedTag = tag;
     $scope.setSelectedForTag(tag, true);
+  };
+
+  $scope.createEphemeralSmartTagForMultiTags = function () {
+    var smartTag = {
+      uuid: Math.random(),
+      content_type: "SN|SmartTag",
+      content: {
+        title: "Multiple tags"
+      }
+    };
+
+    var tagNames = $scope.multipleTags.map(function (tag) {
+      return tag.content.title;
+    });
+    var predicate = ["tags", "includes", ["title", "in", tagNames]];
+    smartTag.content.predicate = predicate;
+    return smartTag;
   };
 
   $scope.toggleCollapse = function (tag) {
@@ -34695,13 +34767,13 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
     $timeout(function () {
       var allTags = $scope.masterTag ? $scope.masterTag.rawTags : [];
       var smartTags = $scope.smartMasterTag ? $scope.smartMasterTag.rawTags : [];
-      var _iteratorNormalCompletion8 = true;
-      var _didIteratorError8 = false;
-      var _iteratorError8 = undefined;
+      var _iteratorNormalCompletion9 = true;
+      var _didIteratorError9 = false;
+      var _iteratorError9 = undefined;
 
       try {
-        for (var _iterator8 = newTags[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
-          var tag = _step8.value;
+        for (var _iterator9 = newTags[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
+          var tag = _step9.value;
 
           var isSmartTag = tag.content_type == smartTagContentType;
           var arrayToUse = isSmartTag ? smartTags : allTags;
@@ -34730,16 +34802,16 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
           }
         }
       } catch (err) {
-        _didIteratorError8 = true;
-        _iteratorError8 = err;
+        _didIteratorError9 = true;
+        _iteratorError9 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion8 && _iterator8.return) {
-            _iterator8.return();
+          if (!_iteratorNormalCompletion9 && _iterator9.return) {
+            _iterator9.return();
           }
         } finally {
-          if (_didIteratorError8) {
-            throw _iteratorError8;
+          if (_didIteratorError9) {
+            throw _iteratorError9;
           }
         }
       }
@@ -34805,27 +34877,27 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
     function addChildren(tag) {
       deleteChain.push(tag);
       if (tag.children) {
-        var _iteratorNormalCompletion9 = true;
-        var _didIteratorError9 = false;
-        var _iteratorError9 = undefined;
+        var _iteratorNormalCompletion10 = true;
+        var _didIteratorError10 = false;
+        var _iteratorError10 = undefined;
 
         try {
-          for (var _iterator9 = tag.children[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
-            var child = _step9.value;
+          for (var _iterator10 = tag.children[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
+            var child = _step10.value;
 
             addChildren(child);
           }
         } catch (err) {
-          _didIteratorError9 = true;
-          _iteratorError9 = err;
+          _didIteratorError10 = true;
+          _iteratorError10 = err;
         } finally {
           try {
-            if (!_iteratorNormalCompletion9 && _iterator9.return) {
-              _iterator9.return();
+            if (!_iteratorNormalCompletion10 && _iterator10.return) {
+              _iterator10.return();
             }
           } finally {
-            if (_didIteratorError9) {
-              throw _iteratorError9;
+            if (_didIteratorError10) {
+              throw _iteratorError10;
             }
           }
         }
@@ -34984,8 +35056,9 @@ var TagTree = function () {
 
       $scope.onDragStart = function (event) {};
 
-      $scope.selectTag = function () {
-        $scope.onSelect()($scope.tag);
+      $scope.selectTag = function (event) {
+        var multiSelect = event.ctrlKey || event.metaKey;
+        $scope.onSelect()($scope.tag, multiSelect);
       };
 
       $scope.addChild = function ($event, parent) {
@@ -35029,29 +35102,29 @@ var TagTree = function () {
         tag.content.title = title;
 
         function renameChildren(tag) {
-          var _iteratorNormalCompletion10 = true;
-          var _didIteratorError10 = false;
-          var _iteratorError10 = undefined;
+          var _iteratorNormalCompletion11 = true;
+          var _didIteratorError11 = false;
+          var _iteratorError11 = undefined;
 
           try {
-            for (var _iterator10 = tag.children[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
-              var child = _step10.value;
+            for (var _iterator11 = tag.children[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
+              var child = _step11.value;
 
               child.content.title = child.parent.content.title + delimiter + child.displayTitle;
               tags.push(child);
               renameChildren(child);
             }
           } catch (err) {
-            _didIteratorError10 = true;
-            _iteratorError10 = err;
+            _didIteratorError11 = true;
+            _iteratorError11 = err;
           } finally {
             try {
-              if (!_iteratorNormalCompletion10 && _iterator10.return) {
-                _iterator10.return();
+              if (!_iteratorNormalCompletion11 && _iterator11.return) {
+                _iterator11.return();
               }
             } finally {
-              if (_didIteratorError10) {
-                throw _iteratorError10;
+              if (_didIteratorError11) {
+                throw _iteratorError11;
               }
             }
           }
@@ -35133,7 +35206,7 @@ angular.module('app').directive('tagTree', function () {
 
   $templateCache.put('directives/tag_tree.html',
     "<div ng-if='tag'>\n" +
-    "<div class='self' draggable='true' drop='onDrop' is-draggable='isDraggable()' is-droppable='isDroppable()' ng-class='{&#39;selected&#39; : tag.selected}' ng-click='selectTag()' tag-id='tag.uuid'>\n" +
+    "<div class='self' draggable='true' drop='onDrop' is-draggable='isDraggable()' is-droppable='isDroppable()' ng-class='{&#39;selected&#39; : tag.selected}' ng-click='selectTag($event)' tag-id='tag.uuid'>\n" +
     "<div class='tag-info body-text-color' ng-class='&#39;level-&#39; + generationForTag(tag)'>\n" +
     "<div class='circle small' ng-class='circleClassForTag(tag)' ng-click='innerCollapse(tag); $event.stopPropagation();'></div>\n" +
     "<div class='title' ng-if='!tag.dummy &amp;&amp; !tag.editing'>\n" +
@@ -35150,7 +35223,7 @@ angular.module('app').directive('tagTree', function () {
     "</div>\n" +
     "</div>\n" +
     "<div ng-if='!tag.clientData.collapsed' ng-repeat='child in tag.children'>\n" +
-    "<div change-parent='changeParent()' class='tag-tree' create-tag='createTag()' delete-tag='deleteTag()' ng-if='!child.deleted' on-select='onSelect()' on-toggle-collapse='onToggleCollapse()' save-tags='saveTags()' tag='child'></div>\n" +
+    "<div change-parent='changeParent()' class='tag-tree' create-tag='createTag()' delete-tag='deleteTag()' ng-if='!child.deleted' on-select='onSelect($event)' on-toggle-collapse='onToggleCollapse()' save-tags='saveTags()' tag='child'></div>\n" +
     "</div>\n" +
     "</div>\n"
   );

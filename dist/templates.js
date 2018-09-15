@@ -17,7 +17,7 @@ angular.module('app').run(['$templateCache', function($templateCache) {
 
   $templateCache.put('directives/tag_tree.html',
     "<div ng-if='tag'>\n" +
-    "<div class='self' draggable='true' drop='onDrop' is-draggable='isDraggable()' is-droppable='isDroppable()' ng-class='{&#39;selected&#39; : tag.selected}' ng-click='selectTag()' tag-id='tag.uuid'>\n" +
+    "<div class='self' draggable='true' drop='onDrop' is-draggable='isDraggable()' is-droppable='isDroppable()' ng-class='{&#39;selected&#39; : tag.selected}' ng-click='selectTag($event)' tag-id='tag.uuid'>\n" +
     "<div class='tag-info body-text-color' ng-class='&#39;level-&#39; + generationForTag(tag)'>\n" +
     "<div class='circle small' ng-class='circleClassForTag(tag)' ng-click='innerCollapse(tag); $event.stopPropagation();'></div>\n" +
     "<div class='title' ng-if='!tag.dummy &amp;&amp; !tag.editing'>\n" +
@@ -34,7 +34,7 @@ angular.module('app').run(['$templateCache', function($templateCache) {
     "</div>\n" +
     "</div>\n" +
     "<div ng-if='!tag.clientData.collapsed' ng-repeat='child in tag.children'>\n" +
-    "<div change-parent='changeParent()' class='tag-tree' create-tag='createTag()' delete-tag='deleteTag()' ng-if='!child.deleted' on-select='onSelect()' on-toggle-collapse='onToggleCollapse()' save-tags='saveTags()' tag='child'></div>\n" +
+    "<div change-parent='changeParent()' class='tag-tree' create-tag='createTag()' delete-tag='deleteTag()' ng-if='!child.deleted' on-select='onSelect($event)' on-toggle-collapse='onToggleCollapse()' save-tags='saveTags()' tag='child'></div>\n" +
     "</div>\n" +
     "</div>\n"
   );

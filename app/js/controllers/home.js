@@ -158,16 +158,48 @@ class HomeCtrl {
       }
     }
 
-    $scope.selectTag = function(tag) {
-      if(tag.master || tag.smartMaster) {
-        componentManager.clearSelection();
-      } else {
-        componentManager.selectItem(tag);
+    $scope.selectTag = function(tag, multiSelect) {
+
+      let isSmartTag = tag.content_type == smartTagContentType;
+      // Multi selection for smart tags is not possible.
+      if(isSmartTag) {
+        multiSelect = false;
       }
 
-      if($scope.selectedTag && $scope.selectedTag != tag) {
+      let clearMultipleTagsSelection = function() {
+        for(var selectedTag of $scope.multipleTags) {
+          $scope.setSelectedForTag(selectedTag, false);
+        }
+      }
+
+      if(tag.master || tag.smartMaster) {
+        clearMultipleTagsSelection();
+        $scope.multipleTags = [];
+        componentManager.clearSelection();
+      } else {
+        if(!$scope.multipleTags) { $scope.multipleTags = []; }
+        if(!isSmartTag) {
+          $scope.multipleTags.push(tag);
+        }
+        if(multiSelect && $scope.multipleTags.length > 1) {
+          var smartTag = $scope.createEphemeralSmartTagForMultiTags();
+          componentManager.selectItem(smartTag);
+        } else {
+          clearMultipleTagsSelection();
+          $scope.multipleTags = isSmartTag ? [] : [tag];
+          componentManager.selectItem(tag);
+        }
+      }
+
+      // if multiselect, we don't want to clear selected tag. But if master is selected,
+      // and multi select other tag, we do want to clear master. Rather than creating a large if
+      // statement, we'll just an if else.
+
+      if(!multiSelect && $scope.selectedTag && $scope.selectedTag != tag) {
         $scope.setSelectedForTag($scope.selectedTag, false);
         $scope.selectedTag.editing = false;
+      } else if($scope.selectedTag.master || $scope.selectedTag.smartMaster || $scope.selectedTag.content_type == smartTagContentType) {
+        $scope.setSelectedForTag($scope.selectedTag, false);
       }
 
       if($scope.selectedTag === tag && !tag.master) {
@@ -176,6 +208,21 @@ class HomeCtrl {
 
       $scope.selectedTag = tag;
       $scope.setSelectedForTag(tag, true);
+    }
+
+    $scope.createEphemeralSmartTagForMultiTags = function() {
+      let smartTag = {
+        uuid: Math.random(),
+        content_type: "SN|SmartTag",
+        content: {
+          title: "Multiple tags"
+        }
+      }
+
+      var tagNames = $scope.multipleTags.map((tag) => {return tag.content.title});
+      var predicate = ["tags", "includes", ["title", "in", tagNames]];
+      smartTag.content.predicate = predicate;
+      return smartTag;
     }
 
     $scope.toggleCollapse = function(tag) {

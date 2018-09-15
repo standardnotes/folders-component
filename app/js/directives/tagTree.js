@@ -37,8 +37,9 @@ class TagTree {
 
     }
 
-    $scope.selectTag = function() {
-      $scope.onSelect()($scope.tag);
+    $scope.selectTag = function(event) {
+      let multiSelect = event.ctrlKey || event.metaKey;
+      $scope.onSelect()($scope.tag, multiSelect);
     }
 
     $scope.addChild = function($event, parent) {
