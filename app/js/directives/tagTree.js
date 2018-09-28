@@ -107,6 +107,10 @@ class TagTree {
       return generation;
     }
 
+    $scope.isTagParent = function(tag) {
+      return tag.children.length > 0;
+    }
+
     $scope.circleClassForTag = function(tag) {
       if(tag.content_type == "SN|SmartTag") {
         return "success";
@@ -123,13 +127,21 @@ class TagTree {
       }
 
       let gen = $scope.generationForTag(tag);
+
+      // "All" should always be info color
+      if(gen == 0) {
+        return "info";
+      }
+
       var circleClass = {
-        0: "info",
         1: "info",
         2: "success",
         3: "danger",
         4: "warning"
-      }[gen];
+      };
+
+      // wrap circle colors, so new deeply nested tag folders can be colored.
+      circleClass = circleClass[gen % Object.keys(circleClass).length+1];
 
       return circleClass ? circleClass : "default";
     }
