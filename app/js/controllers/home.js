@@ -43,9 +43,32 @@ class HomeCtrl {
           continue;
         }
 
-        var parentTitle = comps.slice(0, comps.length - 1).join(delimiter);
-        var parent = findResolvedTag(parentTitle);
+        var getParent = function(depth = 1) {
+          var parentTitle = comps.slice(0, comps.length - depth).join(delimiter);
+          if(parentTitle.length == 0) {
+            return null;
+          }
+          var parent = findResolvedTag(parentTitle);
+
+          // didn't find parent, try again.
+          // just make sure we're not deeper in search than we can go
+          if(!parent && depth < comps.length - 1) {
+            return getParent(depth + 1);
+          }
+
+          // remove parent from name and keep this full tag name to display
+          var tagTitle = tag.content.title.slice(parentTitle.length+1);
+          tag.displayTitle = tagTitle;
+
+          return parent;
+        };
+
+        var parent = getParent();
+
+        // no parent at all up the tree, fall back to root with full name
         if(!parent) {
+          tag.displayTitle = tag.content.title;
+          tag.parent = masterTag;
           continue;
         }
 
