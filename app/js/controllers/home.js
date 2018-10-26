@@ -3,8 +3,9 @@ class HomeCtrl {
 
     let smartTagContentType = "SN|SmartTag";
 
-    let componentManager = new window.ComponentManager([], function(){
+    let componentManager = new window.ComponentManager([], () => {
       // on ready
+      $scope.platform = componentManager.platform;
     });
 
     let delimiter = ".";

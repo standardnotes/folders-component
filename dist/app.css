@@ -301,7 +301,7 @@ body {
   box-sizing: border-box;
 }
 .sn-component .panel .footer .left, .sn-component .panel .panel-footer .left {
-  text-align: right;
+  text-align: left;
   display: block;
 }
 .sn-component .panel .footer .right, .sn-component .panel .panel-footer .right {
@@ -520,6 +520,9 @@ body {
 .sn-component a {
   cursor: pointer;
 }
+.sn-component a.disabled {
+  color: #DDDDDD;
+}
 .sn-component .wrap {
   word-wrap: break-word;
 }
@@ -534,6 +537,18 @@ body {
 }
 .sn-component *.success {
   color: #2B9612;
+}
+.sn-component *.info-i {
+  color: #086DD6 !important;
+}
+.sn-component *.warning-i {
+  color: #f6a200 !important;
+}
+.sn-component *.danger-i {
+  color: #F80324 !important;
+}
+.sn-component *.success-i {
+  color: #2B9612 !important;
 }
 .sn-component *.clear {
   background-color: transparent;
@@ -613,12 +628,34 @@ body {
 }
 .sn-component .button-group .button, .sn-component .button-group .box, .sn-component .button-group .circle {
   display: inline-block;
+  vertical-align: middle;
 }
 .sn-component .button-group .button:not(:last-child), .sn-component .button-group .box:not(:last-child), .sn-component .button-group .circle:not(:last-child) {
   margin-right: 5px;
 }
 .sn-component .button-group .button:not(:last-child).featured, .sn-component .button-group .box:not(:last-child).featured, .sn-component .button-group .circle:not(:last-child).featured {
   margin-right: 8px;
+}
+.sn-component .segmented-buttons {
+  display: flex;
+  flex-direction: row;
+}
+.sn-component .segmented-buttons .button, .sn-component .segmented-buttons .box, .sn-component .segmented-buttons .circle {
+  border-radius: 0;
+  white-space: nowrap;
+  margin: 0;
+}
+.sn-component .segmented-buttons .button:not(:last-child), .sn-component .segmented-buttons .box:not(:last-child), .sn-component .segmented-buttons .circle:not(:last-child) {
+  border-right: none;
+}
+.sn-component .segmented-buttons .button:first-child, .sn-component .segmented-buttons .box:first-child, .sn-component .segmented-buttons .circle:first-child {
+  border-top-left-radius: 3px;
+  border-bottom-left-radius: 3px;
+  border-right: none;
+}
+.sn-component .segmented-buttons .button:last-child, .sn-component .segmented-buttons .box:last-child, .sn-component .segmented-buttons .circle:last-child {
+  border-top-right-radius: 3px;
+  border-bottom-right-radius: 3px;
 }
 .sn-component .box-group .box {
   display: inline-block;
@@ -656,7 +693,7 @@ body {
   color: #8b8b8b;
 }
 .sn-component .button.default:hover, .sn-component .default.box:hover, .sn-component .default.circle:hover, .sn-component .box.default:hover, .sn-component .circle.default:hover {
-  background-color: white;
+  background-color: #f9f9f9;
   color: #939393;
 }
 .sn-component .button.default.featured, .sn-component .default.featured.box, .sn-component .default.featured.circle, .sn-component .box.default.featured, .sn-component .circle.default.featured {
@@ -981,6 +1018,28 @@ body {
 }
 .sn-component .panel-table .table-item.no-border {
   border: none;
+}
+
+.windows-web ::-webkit-scrollbar, .windows-desktop ::-webkit-scrollbar, .linux-web ::-webkit-scrollbar, .linux-desktop ::-webkit-scrollbar {
+  width: 17px;
+  height: 18px;
+  border-left: 0.5px solid #E7E7E7;
+}
+.windows-web ::-webkit-scrollbar-thumb, .windows-desktop ::-webkit-scrollbar-thumb, .linux-web ::-webkit-scrollbar-thumb, .linux-desktop ::-webkit-scrollbar-thumb {
+  height: 6px;
+  border: 4px solid rgba(0, 0, 0, 0);
+  background-clip: padding-box;
+  -webkit-border-radius: 10px;
+  background-color: #dfdfdf;
+  -webkit-box-shadow: inset -1px -1px 0px rgba(0, 0, 0, 0.05), inset 1px 1px 0px rgba(0, 0, 0, 0.05);
+}
+.windows-web ::-webkit-scrollbar-button, .windows-desktop ::-webkit-scrollbar-button, .linux-web ::-webkit-scrollbar-button, .linux-desktop ::-webkit-scrollbar-button {
+  width: 0;
+  height: 0;
+  display: none;
+}
+.windows-web ::-webkit-scrollbar-corner, .windows-desktop ::-webkit-scrollbar-corner, .linux-web ::-webkit-scrollbar-corner, .linux-desktop ::-webkit-scrollbar-corner {
+  background-color: transparent;
 }
 
 /*# sourceMappingURL=stylekit.css.map */
