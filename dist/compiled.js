@@ -35279,7 +35279,7 @@ angular.module('app').directive('tagTree', function () {
 
 
   $templateCache.put('home.html',
-    "<div class='sn-component' ng-class='platform'>\n" +
+    "<div class='sn-component'>\n" +
     "<div class='content'>\n" +
     "<div class='header'>\n" +
     "<h4 class='body-text-color'>Folders</h4>\n" +
