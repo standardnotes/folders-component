@@ -51,10 +51,6 @@ table {
   --body-text-color: black;
 }
 
-* {
-  box-sizing: border-box;
-}
-
 html {
   width: 100%;
   background-color: transparent;
@@ -76,15 +72,10 @@ body {
 }
 
 .sn-component {
-  height: 100%;
   overflow: hidden;
 }
 .sn-component:hover {
   overflow: auto;
-}
-
-.root-container {
-  height: 100%;
 }
 
 .header {
@@ -97,7 +88,6 @@ body {
   padding-top: 15px;
   padding-right: 6px;
   width: 100%;
-  height: 100%;
   padding-bottom: 5px;
 }
 
@@ -196,8 +186,10 @@ body {
 .tag-tree .self .tag-info .hover-menu {
   display: none;
   margin-top: -3px;
-  width: 80px;
-  margin-left: 20px;
+  float: right;
+  position: absolute;
+  right: 20px;
+  top: 0;
 }
 .tag-tree .self .tag-info .hover-menu button {
   font-size: 14px;
