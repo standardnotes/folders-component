@@ -5,7 +5,7 @@ class HomeCtrl {
 
     let componentManager = new window.ComponentManager([], () => {
       // on ready
-      $scope.platform = componentManager.platform;
+      $rootScope.platform = componentManager.platform;
     });
 
     let delimiter = ".";
@@ -183,7 +183,6 @@ class HomeCtrl {
     }
 
     $scope.selectTag = function(tag, multiSelect) {
-
       let isSmartTag = tag.content_type == smartTagContentType;
       // Multi selection for smart tags is not possible.
       if(isSmartTag) {

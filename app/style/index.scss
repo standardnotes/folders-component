@@ -1,5 +1,6 @@
 @import 'reset';
 
+$tag-height: 26px;
 $font-size: 14px;
 $tags-selected-bg-color: rgba(black, 0.13);
 $selected-text-color: black;
@@ -13,73 +14,93 @@ $selected-text-color: black;
 }
 
 html {
-  width: 100%;
   background-color: transparent;
-  max-width: 100%;
 }
 
 body {
-  background-color: #f6f6f6;
-  font-family: sans-serif;
   margin: 0;
   padding: 0;
-
+  width: 100%;
+  height: 100%;
   font-family: -apple-system, BlinkMacSystemFont,
     "Segoe UI", "Roboto", "Oxygen",
     "Ubuntu", "Cantarell", "Fira Sans",
     "Droid Sans", "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
-  min-height: 100%;
-  height: 100%;
   font-size: $font-size;
   color: black;
-  max-width: 100%;
-}
-
-.sn-component {
-  height: 100%;
-  overflow: hidden;
-  &:hover {
-    overflow: auto;
-  }
+  background-color: #f6f6f6;
 }
 
 .root-container {
   height: 100%;
+  overflow: hidden;
+  &:hover {
+    overflow: overlay;
+  }
 }
 
 .header {
   margin-bottom: 15px;
 }
 
-$tag-height: 26px;
+.sn-component {
+  display: flex;
+  flex-grow: 1;
+  align-items: flex-start;
+  height: 100%;
+  width: 100%;
+}
 
 .content {
-  overflow-x: visible;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  position: relative;
   padding: 15px;
   padding-top: 15px;
   padding-right: 6px;
-  width: 100%;
-  height: 100%;
-  padding-bottom: 5px;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
 }
 
 .tag-tree {
-  padding-left: 18px;
-
-  &.master {
-    padding-left: 0;
-  }
-
+  display: flex;
+  flex-grow: 1;
+  padding: 0 18px;
   cursor: pointer;
   font-size: $font-size;
 
+  &.master {
+    padding-left: 0;
+    display: block;
+    flex-grow: 1;
+
+    // Make sure we have padding at the bottom of the scrollable content so that the last tag
+    // is not cut off (under scrollbar) since scrollbar is set to overlay content
+    &:last-child {
+      padding-bottom: 15px;
+    }
+  }
+
+  // Make sure Angular div from the ng-if is growing in width
+  > div {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
   .self {
+    display: flex;
+    flex-grow: 1;
 
-    min-width: 120px;
-    width: 100%;
-
-    min-height: $tag-height;
+    // Make sure Angular div from the ng-if is growing in width
+    > div {
+      flex-grow: 1;
+      display: flex;
+    }
 
     @mixin on-hover() {
       color: $selected-text-color;
@@ -87,15 +108,12 @@ $tag-height: 26px;
         color: $selected-text-color;
       }
       &:before {
-        margin-top: -6px;
         content: '';
         min-height: $tag-height;
         position: absolute;
-        width: 100%;
         left: 0;
         right: 0;
         z-index: -1;
-        // background: $tags-selected-bg-color;
         $color-1: rgba(190,212,219,0.5);
         $color-2: rgba(206,203,216,0.5);
         background: $color-1; /* Old browsers */
@@ -131,72 +149,74 @@ $tag-height: 26px;
       @include on-hover();
     }
 
-    display: table;
+    // Option buttons on a tag to remove tag or add a child tag
+    .hover-menu {
+      display: none;
+      position: absolute;
+      right: 10px;
+      margin-top: 3px;
+      position: sticky;
+
+      button {
+        $button-bg: #eff2fb;
+
+        width: 45px;
+        height: 20px;
+        font-size: 14px;
+        color: darken($button-bg, 35%);
+        line-height: 10px;
+        border: 1px solid rgba(black, 0.15);
+        outline: none;
+
+        &.half {
+          width: 25px;
+        }
+
+        &.danger {
+          color: red;
+        }
+
+        cursor: pointer;
+        background-color: $button-bg;
+        border-radius: 4px;
+        font-weight: normal;
+        text-align: center;
+
+        &:hover {
+          background-color: darken($button-bg, 2%);
+        }
+      }
+
+    }
+
+    .new-tag-form {
+      display: flex;
+      flex-grow: 1;
+
+      input {
+        margin: 0;
+        padding: 0;
+        padding-top: 2px;
+        background-color: transparent;
+        font-size: $font-size;
+        border: 0;
+        outline: 0;
+      }
+    }
+
+    // Hover tag-tree
+    &:hover {
+      .hover-menu {
+        display: flex;
+        flex-grow: 1;
+      }
+    }
 
     .tag-info {
-      min-height: 100%;
-      height: 100%;
-      position: relative;
-      display: table-cell;
       display: flex;
+      flex-grow: 1;
       min-height: $tag-height;
-
-      &:hover {
-       .hover-menu {
-         display: inline-block;
-       }
-      }
-
-      .hover-menu {
-        display: none;
-        margin-top: -3px;
-        width: 80px;
-        margin-left: 20px;
-
-        button {
-          font-size: 14px;
-
-          $button-bg: #eff2fb;
-          color: darken($button-bg, 35%);
-          width: 45px;
-          height: 20px;
-          line-height: 10px;
-          border: 1px solid rgba(black, 0.15);
-          outline: none;
-
-          &.half {
-            width: 25px;
-          }
-
-          &.danger {
-            color: red;
-          }
-
-          cursor: pointer;
-          background-color: $button-bg;
-          border-radius: 4px;
-          font-weight: normal;
-          text-align: center;
-
-          &:hover {
-            background-color: darken($button-bg, 2%);
-          }
-        }
-      }
-
-      .new-tag-form {
-        margin-top: -5px;
-        width: 70%;
-        input {
-          background-color: transparent;
-          border: 0;
-          outline: 0;
-          font-size: $font-size;
-          padding: 0;
-          margin: 0;
-          padding-top: 2px;
-        }
-      }
+      line-height: $tag-height;
 
       &.level-1 {
         .title {
@@ -205,29 +225,33 @@ $tag-height: 26px;
       }
 
       .circle {
+        margin: 8px 10px 0 0;
         margin-right: 5px;
       }
 
-     input.title {
-       border-bottom: 0;
-       width: 80%;
-       outline: 0;
-       margin: 0;
-       padding: 0;
-       margin-top: -15px;
-       padding-top: 2px;
-     }
+      input.title {
+        display: flex;
+        flex-grow: 1;
+        margin: 0;
+        padding: 0;
+        padding-top: 2px;
+        width: 80%;
+        border-bottom: 0;
+        outline: 0;
+      }
 
-     .title {
-       background-color: transparent;
-       font-weight: 200;
-       font-size: $font-size;
-       border: none;
-       cursor: pointer;
-       text-overflow: ellipsis;
-       pointer-events: none;
-     }
-   }
-
+      .title {
+        display: flex;
+        flex-grow: 1;
+        background-color: transparent;
+        font-weight: 200;
+        font-size: $font-size;
+        border: none;
+        cursor: pointer;
+        text-overflow: ellipsis;
+        pointer-events: none;
+        white-space: nowrap;
+      }
+    }
   }
 }
