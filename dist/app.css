@@ -96,9 +96,7 @@ body {
   flex-direction: column;
   flex-grow: 1;
   position: relative;
-  padding: 15px;
-  padding-top: 15px;
-  padding-right: 6px;
+  padding: 15px 20px 0 15px;
   top: 0;
   bottom: 0;
   left: 0;
@@ -108,7 +106,7 @@ body {
 .tag-tree {
   display: flex;
   flex-grow: 1;
-  padding: 0 18px;
+  padding: 0 0 0 18px;
   cursor: pointer;
   font-size: 14px;
 }
@@ -130,10 +128,6 @@ body {
   flex-grow: 1;
   /* The properties for when another tag is dragged on top of this one */
   /* The tag being dragged */
-}
-.tag-tree .self > div {
-  flex-grow: 1;
-  display: flex;
 }
 .tag-tree .self.selected {
   color: black;
@@ -202,6 +196,7 @@ body {
   right: 10px;
   margin-top: 3px;
   position: sticky;
+  justify-content: flex-end;
 }
 .tag-tree .self .hover-menu button {
   width: 45px;
@@ -241,7 +236,6 @@ body {
 }
 .tag-tree .self:hover .hover-menu {
   display: flex;
-  flex-grow: 1;
 }
 .tag-tree .self .tag-info {
   display: flex;

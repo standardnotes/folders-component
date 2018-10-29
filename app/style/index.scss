@@ -57,9 +57,7 @@ body {
   flex-direction: column;
   flex-grow: 1;
   position: relative;
-  padding: 15px;
-  padding-top: 15px;
-  padding-right: 6px;
+  padding: 15px 20px 0 15px;
   top: 0;
   bottom: 0;
   left: 0;
@@ -69,7 +67,7 @@ body {
 .tag-tree {
   display: flex;
   flex-grow: 1;
-  padding: 0 18px;
+  padding: 0 0 0 18px;
   cursor: pointer;
   font-size: $font-size;
 
@@ -95,12 +93,6 @@ body {
   .self {
     display: flex;
     flex-grow: 1;
-
-    // Make sure Angular div from the ng-if is growing in width
-    > div {
-      flex-grow: 1;
-      display: flex;
-    }
 
     @mixin on-hover() {
       color: $selected-text-color;
@@ -156,6 +148,7 @@ body {
       right: 10px;
       margin-top: 3px;
       position: sticky;
+      justify-content: flex-end;
 
       button {
         $button-bg: #eff2fb;
@@ -208,7 +201,7 @@ body {
     &:hover {
       .hover-menu {
         display: flex;
-        flex-grow: 1;
+        // flex-grow: 1;
       }
     }
 
