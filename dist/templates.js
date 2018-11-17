@@ -28,9 +28,9 @@ angular.module('app').run(['$templateCache', function($templateCache) {
     "<input mb-autofocus='true' ng-blur='saveNewTag(tag)' ng-keyup='$event.keyCode == 13 &amp;&amp; saveNewTag(tag)' ng-model='tag.content.title' placeholder='' should-focus='true'>\n" +
     "</div>\n" +
     "</div>\n" +
-    "<div class='hover-menu' ng-if='!tag.dummy &amp;&amp; !tag.editing &amp;&amp; tag.selected'>\n" +
-    "<button class='half danger' ng-click='removeTag(tag); $event.stopPropagation();' ng-if='!tag.master'>–</button>\n" +
-    "<button ng-click='addChild($event, tag);'>+</button>\n" +
+    "<div class='action-menu' ng-if='!tag.dummy &amp;&amp; tag.selected'>\n" +
+    "<span ng-click='addChild($event, tag);'>Add</span>\n" +
+    "<span class='delete' ng-click='removeTag(tag); $event.stopPropagation();' ng-if='!tag.master'>Delete</span>\n" +
     "</div>\n" +
     "</div>\n" +
     "<div ng-if='!tag.clientData.collapsed' ng-repeat='child in tag.children'>\n" +

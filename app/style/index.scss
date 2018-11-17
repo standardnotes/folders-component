@@ -36,6 +36,7 @@ body {
   height: 100%;
   overflow: hidden;
   &:hover {
+    overflow: scroll;
     overflow: overlay;
   }
 }
@@ -91,7 +92,7 @@ body {
   }
 
   .self {
-    display: flex;
+    // display: flex;
     flex-grow: 1;
 
     @mixin on-hover() {
@@ -118,6 +119,10 @@ body {
 
     &.selected {
       @include on-hover();
+
+      &:before {
+        min-height: $tag-height * 2;
+      }
     }
 
     /* The properties for when another tag is dragged on top of this one */
@@ -137,49 +142,23 @@ body {
       opacity: 0.5;
     }
 
-    &:hover:not(.selected) {
-      @include on-hover();
-    }
+    .action-menu {
+      display: block;
+      height: $tag-height;
+      font-size: 12px;
+      line-height: $tag-height;
 
-    // Option buttons on a tag to remove tag or add a child tag
-    .hover-menu {
-      display: none;
-      position: absolute;
-      right: 10px;
-      margin-top: 3px;
-      position: sticky;
-      justify-content: flex-end;
-
-      button {
-        $button-bg: #eff2fb;
-
-        width: 45px;
-        height: 20px;
-        font-size: 14px;
-        color: darken($button-bg, 35%);
-        line-height: 10px;
-        border: 1px solid rgba(black, 0.15);
-        outline: none;
-
-        &.half {
-          width: 25px;
-        }
-
-        &.danger {
-          color: red;
-        }
-
-        cursor: pointer;
-        background-color: $button-bg;
-        border-radius: 4px;
-        font-weight: normal;
-        text-align: center;
+      span {
+        margin-right: 5px;
 
         &:hover {
-          background-color: darken($button-bg, 2%);
+          color: #1f6cd3;
+
+          &.delete {
+            color: red;
+          }
         }
       }
-
     }
 
     .new-tag-form {
@@ -197,14 +176,6 @@ body {
       }
     }
 
-    // Hover tag-tree
-    &:hover {
-      .hover-menu {
-        display: flex;
-        // flex-grow: 1;
-      }
-    }
-
     .tag-info {
       display: flex;
       flex-grow: 1;
@@ -218,8 +189,9 @@ body {
       }
 
       .circle {
-        margin: 8px 10px 0 0;
-        margin-right: 5px;
+        margin: 8px 5px 0 0;
+        min-width: 11px;
+        min-height: 11px;
       }
 
       input.title {

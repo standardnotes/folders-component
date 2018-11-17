@@ -6,7 +6,7 @@
     <script src="dist/compiled.min.js"></script>
     <link href="dist/app.css" rel="stylesheet"></link>
   </head>
-  <body class="{{ $root.platform }} body-text-color body-background-color">
+  <body class="body-text-color body-background-color {{$root.platform}}">
     <div class="root-container" ng-controller="HomeCtrl" ng-include="'home.html'"></div>
   </body>
 </html>

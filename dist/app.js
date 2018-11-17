@@ -1303,6 +1303,7 @@ var TagTree = function () {
           generation++;
           parent = parent.parent;
         }
+
         return generation;
       };
 

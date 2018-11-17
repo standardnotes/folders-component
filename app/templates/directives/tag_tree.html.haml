@@ -13,9 +13,9 @@
         %input{"placeholder" => "", "mb-autofocus" => "true", "should-focus" => "true", "ng-model" => "tag.content.title",
         "ng-keyup" => "$event.keyCode == 13 && saveNewTag(tag)", "ng-blur" => "saveNewTag(tag)"}
 
-    .hover-menu{"ng-if" => "!tag.dummy && !tag.editing && tag.selected"}
-      %button.half.danger{"ng-if" => "!tag.master", "ng-click" => "removeTag(tag); $event.stopPropagation();"} –
-      %button{"ng-click" => "addChild($event, tag);"} +
+    .action-menu{"ng-if" => "!tag.dummy && tag.selected"}
+      %span{"ng-click" => "addChild($event, tag);"} Add
+      %span.delete{"ng-if" => "!tag.master", "ng-click" => "removeTag(tag); $event.stopPropagation();"} Delete
 
 
   %div{"ng-if" => "!tag.clientData.collapsed", "ng-repeat" => "child in tag.children"}

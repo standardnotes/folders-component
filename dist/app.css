@@ -76,6 +76,7 @@ body {
   overflow: hidden;
 }
 .root-container:hover {
+  overflow: scroll;
   overflow: overlay;
 }
 
@@ -124,7 +125,6 @@ body {
   flex-direction: column;
 }
 .tag-tree .self {
-  display: flex;
   flex-grow: 1;
   /* The properties for when another tag is dragged on top of this one */
   /* The tag being dragged */
@@ -153,6 +153,9 @@ body {
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#bed4db', endColorstr='#cecbd8',GradientType=1 );
   /* IE6-9 */
 }
+.tag-tree .self.selected:before {
+  min-height: 52px;
+}
 .tag-tree .self.over {
   background-color: rgba(0, 0, 0, 0.13);
   color: black;
@@ -166,60 +169,20 @@ body {
 .tag-tree .self.drag {
   opacity: 0.5;
 }
-.tag-tree .self:hover:not(.selected) {
-  color: black;
+.tag-tree .self .action-menu {
+  display: block;
+  height: 26px;
+  font-size: 12px;
+  line-height: 26px;
 }
-.tag-tree .self:hover:not(.selected) > .title {
-  color: black;
+.tag-tree .self .action-menu span {
+  margin-right: 5px;
 }
-.tag-tree .self:hover:not(.selected):before {
-  content: '';
-  min-height: 26px;
-  position: absolute;
-  left: 0;
-  right: 0;
-  z-index: -1;
-  background: rgba(190, 212, 219, 0.5);
-  /* Old browsers */
-  background: -moz-linear-gradient(left, rgba(190, 212, 219, 0.5) 0%, rgba(206, 203, 216, 0.5) 100%);
-  /* FF3.6-15 */
-  background: -webkit-linear-gradient(left, rgba(190, 212, 219, 0.5) 0%, rgba(206, 203, 216, 0.5) 100%);
-  /* Chrome10-25,Safari5.1-6 */
-  background: linear-gradient(to right, rgba(190, 212, 219, 0.5) 0%, rgba(206, 203, 216, 0.5) 100%);
-  /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
-  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#bed4db', endColorstr='#cecbd8',GradientType=1 );
-  /* IE6-9 */
+.tag-tree .self .action-menu span:hover {
+  color: #1f6cd3;
 }
-.tag-tree .self .hover-menu {
-  display: none;
-  position: absolute;
-  right: 10px;
-  margin-top: 3px;
-  position: sticky;
-  justify-content: flex-end;
-}
-.tag-tree .self .hover-menu button {
-  width: 45px;
-  height: 20px;
-  font-size: 14px;
-  color: #607ed7;
-  line-height: 10px;
-  border: 1px solid rgba(0, 0, 0, 0.15);
-  outline: none;
-  cursor: pointer;
-  background-color: #eff2fb;
-  border-radius: 4px;
-  font-weight: normal;
-  text-align: center;
-}
-.tag-tree .self .hover-menu button.half {
-  width: 25px;
-}
-.tag-tree .self .hover-menu button.danger {
+.tag-tree .self .action-menu span:hover.delete {
   color: red;
-}
-.tag-tree .self .hover-menu button:hover {
-  background-color: #e7ebf9;
 }
 .tag-tree .self .new-tag-form {
   display: flex;
@@ -234,9 +197,6 @@ body {
   border: 0;
   outline: 0;
 }
-.tag-tree .self:hover .hover-menu {
-  display: flex;
-}
 .tag-tree .self .tag-info {
   display: flex;
   flex-grow: 1;
@@ -247,8 +207,9 @@ body {
   font-weight: 600;
 }
 .tag-tree .self .tag-info .circle {
-  margin: 8px 10px 0 0;
-  margin-right: 5px;
+  margin: 8px 5px 0 0;
+  min-width: 11px;
+  min-height: 11px;
 }
 .tag-tree .self .tag-info input.title {
   display: flex;

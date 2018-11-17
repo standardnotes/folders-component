@@ -104,6 +104,7 @@ class TagTree {
         generation++;
         parent = parent.parent;
       }
+
       return generation;
     }
 
