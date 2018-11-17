@@ -190,8 +190,10 @@ class HomeCtrl {
       }
 
       let clearMultipleTagsSelection = function() {
-        for(var selectedTag of $scope.multipleTags) {
-          $scope.setSelectedForTag(selectedTag, false);
+        if($scope.multipleTags) {
+          for(var selectedTag of $scope.multipleTags) {
+            $scope.setSelectedForTag(selectedTag, false);
+          }
         }
       }
 
