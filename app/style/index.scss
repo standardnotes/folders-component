@@ -119,10 +119,6 @@ body {
 
     &.selected {
       @include on-hover();
-
-      &:before {
-        min-height: $tag-height * 2;
-      }
     }
 
     /* The properties for when another tag is dragged on top of this one */
@@ -142,23 +138,14 @@ body {
       opacity: 0.5;
     }
 
-    .action-menu {
-      display: block;
-      height: $tag-height;
-      font-size: 12px;
-      line-height: $tag-height;
-
-      span {
-        margin-right: 5px;
-
-        &:hover {
-          color: #1f6cd3;
-
-          &.delete {
-            color: red;
-          }
-        }
+    &:hover {
+      .action-menu button {
+        opacity: 1 !important;
       }
+    }
+
+    &:hover:not(.selected) {
+      @include on-hover();
     }
 
     .new-tag-form {
@@ -207,7 +194,6 @@ body {
 
       .title {
         display: flex;
-        flex-grow: 1;
         background-color: transparent;
         font-weight: 200;
         font-size: $font-size;
@@ -216,6 +202,47 @@ body {
         text-overflow: ellipsis;
         pointer-events: none;
         white-space: nowrap;
+      }
+
+      .action-menu {
+        display: inline-flex;
+        margin-left: 10px;
+        height: $tag-height;
+        font-size: 12px;
+        line-height: $tag-height;
+
+        button {
+          opacity: 0;
+          margin-top: 3px;
+          font-size: 14px;
+
+          $button-bg: #eff2fb;
+          color: darken($button-bg, 35%);
+          width: 45px;
+          height: 20px;
+          line-height: 10px;
+          border: 1px solid rgba(black, 0.15);
+          outline: none;
+          transition: opacity 0.08s ease;
+
+          &.half {
+            width: 25px;
+          }
+
+          &.danger {
+            color: red;
+          }
+
+          cursor: pointer;
+          background-color: $button-bg;
+          border-radius: 4px;
+          font-weight: normal;
+          text-align: center;
+
+          &:hover {
+            background-color: darken($button-bg, 2%);
+          }
+        }
       }
     }
   }

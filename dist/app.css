@@ -153,9 +153,6 @@ body {
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#bed4db', endColorstr='#cecbd8',GradientType=1 );
   /* IE6-9 */
 }
-.tag-tree .self.selected:before {
-  min-height: 52px;
-}
 .tag-tree .self.over {
   background-color: rgba(0, 0, 0, 0.13);
   color: black;
@@ -169,20 +166,32 @@ body {
 .tag-tree .self.drag {
   opacity: 0.5;
 }
-.tag-tree .self .action-menu {
-  display: block;
-  height: 26px;
-  font-size: 12px;
-  line-height: 26px;
+.tag-tree .self:hover .action-menu button {
+  opacity: 1 !important;
 }
-.tag-tree .self .action-menu span {
-  margin-right: 5px;
+.tag-tree .self:hover:not(.selected) {
+  color: black;
 }
-.tag-tree .self .action-menu span:hover {
-  color: #1f6cd3;
+.tag-tree .self:hover:not(.selected) > .title {
+  color: black;
 }
-.tag-tree .self .action-menu span:hover.delete {
-  color: red;
+.tag-tree .self:hover:not(.selected):before {
+  content: '';
+  min-height: 26px;
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: -1;
+  background: rgba(190, 212, 219, 0.5);
+  /* Old browsers */
+  background: -moz-linear-gradient(left, rgba(190, 212, 219, 0.5) 0%, rgba(206, 203, 216, 0.5) 100%);
+  /* FF3.6-15 */
+  background: -webkit-linear-gradient(left, rgba(190, 212, 219, 0.5) 0%, rgba(206, 203, 216, 0.5) 100%);
+  /* Chrome10-25,Safari5.1-6 */
+  background: linear-gradient(to right, rgba(190, 212, 219, 0.5) 0%, rgba(206, 203, 216, 0.5) 100%);
+  /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#bed4db', endColorstr='#cecbd8',GradientType=1 );
+  /* IE6-9 */
 }
 .tag-tree .self .new-tag-form {
   display: flex;
@@ -223,7 +232,6 @@ body {
 }
 .tag-tree .self .tag-info .title {
   display: flex;
-  flex-grow: 1;
   background-color: transparent;
   font-weight: 200;
   font-size: 14px;
@@ -232,6 +240,39 @@ body {
   text-overflow: ellipsis;
   pointer-events: none;
   white-space: nowrap;
+}
+.tag-tree .self .tag-info .action-menu {
+  display: inline-flex;
+  margin-left: 10px;
+  height: 26px;
+  font-size: 12px;
+  line-height: 26px;
+}
+.tag-tree .self .tag-info .action-menu button {
+  opacity: 0;
+  margin-top: 3px;
+  font-size: 14px;
+  color: #607ed7;
+  width: 45px;
+  height: 20px;
+  line-height: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  outline: none;
+  transition: opacity 0.08s ease;
+  cursor: pointer;
+  background-color: #eff2fb;
+  border-radius: 4px;
+  font-weight: normal;
+  text-align: center;
+}
+.tag-tree .self .tag-info .action-menu button.half {
+  width: 25px;
+}
+.tag-tree .self .tag-info .action-menu button.danger {
+  color: red;
+}
+.tag-tree .self .tag-info .action-menu button:hover {
+  background-color: #e7ebf9;
 }
 
 /*# sourceMappingURL=app.css.map */

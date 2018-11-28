@@ -9,14 +9,13 @@
       %input.title{"ng-if" => "!tag.dummy && tag.editing", "mb-autofocus" => "true", "should-focus" => "true", "ng-model" => "tag.displayTitle",
       "ng-keyup" => "$event.keyCode == 13 && saveTagRename(tag)"}
 
+      .action-menu{"ng-if" => "!tag.dummy && tag.selected"}
+        %button.half.danger{"ng-if" => "!tag.master", "ng-click" => "removeTag(tag); $event.stopPropagation();"} –
+        %button{"ng-click" => "addChild($event, tag);"} +
+
       .new-tag-form{"ng-if" => "tag.dummy"}
         %input{"placeholder" => "", "mb-autofocus" => "true", "should-focus" => "true", "ng-model" => "tag.content.title",
         "ng-keyup" => "$event.keyCode == 13 && saveNewTag(tag)", "ng-blur" => "saveNewTag(tag)"}
-
-    .action-menu{"ng-if" => "!tag.dummy && tag.selected"}
-      %span{"ng-click" => "addChild($event, tag);"} Add
-      %span.delete{"ng-if" => "!tag.master", "ng-click" => "removeTag(tag); $event.stopPropagation();"} Delete
-
 
   %div{"ng-if" => "!tag.clientData.collapsed", "ng-repeat" => "child in tag.children"}
     .tag-tree{"ng-if" => "!child.deleted", "tag" => "child", "change-parent" => "changeParent()",
