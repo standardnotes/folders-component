@@ -4,6 +4,10 @@ $tag-height: 26px;
 $font-size: 14px;
 $tags-selected-bg-color: rgba(black, 0.13);
 $selected-text-color: black;
+$font-family: -apple-system, BlinkMacSystemFont,
+    "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans",
+    "Droid Sans", "Helvetica Neue", sans-serif;
 
 :root {
   --body-text-color: black;
@@ -22,10 +26,7 @@ body {
   padding: 0;
   width: 100%;
   height: 100%;
-  font-family: -apple-system, BlinkMacSystemFont,
-    "Segoe UI", "Roboto", "Oxygen",
-    "Ubuntu", "Cantarell", "Fira Sans",
-    "Droid Sans", "Helvetica Neue", sans-serif;
+  font-family: $font-family;
   -webkit-font-smoothing: antialiased;
   font-size: $font-size;
   color: black;
@@ -186,10 +187,10 @@ body {
         flex-grow: 1;
         margin: 0;
         padding: 0;
-        padding-top: 2px;
-        width: 80%;
-        border-bottom: 0;
-        outline: 0;
+        font-family: $font-family;
+        font-size: $font-size;
+        line-height: $tag-height;
+        height: $tag-height;
       }
 
       .title {
@@ -214,6 +215,7 @@ body {
         button {
           opacity: 0;
           margin-top: 3px;
+          margin-right: 3px;
           font-size: 14px;
 
           $button-bg: #eff2fb;
@@ -224,6 +226,10 @@ body {
           border: 1px solid rgba(black, 0.15);
           outline: none;
           transition: opacity 0.08s ease;
+
+          &:last-child {
+            margin-right: 0;
+          }
 
           &.half {
             width: 25px;
