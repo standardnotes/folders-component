@@ -280,6 +280,17 @@ body {
 }
 
 /*# sourceMappingURL=app.css.map */
+:root {
+  --sn-stylekit-font-size-small: 0.9rem;
+  --sn-stylekit-font-size-normal: 1.0rem;
+  --sn-stylekit-font-size-large: 1.2rem;
+  --sn-component-background-color: #F6F6F6;
+  --sn-component-foreground-color: black;
+  --sn-component-foreground-highlight-color: #086DD6;
+  --sn-component-outer-border-color: #DDDDDD;
+  --sn-component-inner-border-color: #DDDDDD;
+}
+
 .sn-component {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -381,6 +392,12 @@ body {
   font-weight: normal;
   opacity: 0.6;
 }
+.sn-component .panel-section .text-content p {
+  margin-bottom: 1rem;
+}
+.sn-component .panel-section .text-content p:first-child {
+  margin-top: 0.3rem;
+}
 .sn-component .panel-row {
   display: flex;
   justify-content: space-between;
@@ -412,6 +429,11 @@ body {
 .sn-component .panel-row p {
   margin: 0;
   padding: 0;
+}
+.sn-component .vertical-rule {
+  background-color: #DDDDDD;
+  height: 1.5rem;
+  width: 1px;
 }
 .sn-component .panel-form {
   width: 100%;
@@ -536,11 +558,40 @@ body {
   font-weight: bold;
   font-size: 0.85rem;
 }
+.sn-component .font-small {
+  font-size: var(--sn-stylekit-font-size-small);
+}
+.sn-component .font-normal {
+  font-size: var(--sn-stylekit-font-size-normal);
+}
+.sn-component .font-large {
+  font-size: var(--sn-stylekit-font-size-large);
+}
 .sn-component a {
   cursor: pointer;
 }
 .sn-component a.disabled {
   color: #DDDDDD;
+}
+.sn-component a.boxed {
+  border-radius: 3px;
+  color: white;
+  padding: 0.4rem;
+}
+.sn-component a.boxed:hover {
+  text-decoration: none;
+}
+.sn-component a.boxed.info {
+  background-color: #086DD6;
+}
+.sn-component a.boxed.warning {
+  background-color: #f6a200;
+}
+.sn-component a.boxed.danger {
+  background-color: #F80324;
+}
+.sn-component a.boxed.success {
+  background-color: #2B9612;
 }
 .sn-component .wrap {
   word-wrap: break-word;
