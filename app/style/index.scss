@@ -1,41 +1,44 @@
 @import 'reset';
 
+$tag-height: 26px;
 $font-size: 14px;
 $tags-selected-bg-color: rgba(black, 0.13);
 $selected-text-color: black;
+$font-family: -apple-system, BlinkMacSystemFont,
+    "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans",
+    "Droid Sans", "Helvetica Neue", sans-serif;
 
 :root {
   --body-text-color: black;
 }
 
+* {
+  box-sizing: border-box;
+}
+
 html {
-  width: 100%;
   background-color: transparent;
-  max-width: 100%;
 }
 
 body {
-  background-color: #f6f6f6;
-  font-family: sans-serif;
   margin: 0;
   padding: 0;
-
-  font-family: -apple-system, BlinkMacSystemFont,
-    "Segoe UI", "Roboto", "Oxygen",
-    "Ubuntu", "Cantarell", "Fira Sans",
-    "Droid Sans", "Helvetica Neue", sans-serif;
-  -webkit-font-smoothing: antialiased;
-  min-height: 100%;
+  width: 100%;
   height: 100%;
+  font-family: $font-family;
+  -webkit-font-smoothing: antialiased;
   font-size: $font-size;
   color: black;
-  max-width: 100%;
+  background-color: #f6f6f6;
 }
 
-.sn-component {
+.root-container {
+  height: 100%;
   overflow: hidden;
   &:hover {
-    overflow: auto;
+    overflow: scroll;
+    overflow: overlay;
   }
 }
 
@@ -43,33 +46,55 @@ body {
   margin-bottom: 15px;
 }
 
-$tag-height: 26px;
+.sn-component {
+  display: flex;
+  flex-grow: 1;
+  align-items: flex-start;
+  height: 100%;
+  width: 100%;
+}
 
 .content {
-  overflow-x: visible;
-  padding: 15px;
-  padding-top: 15px;
-  padding-right: 6px;
-  width: 100%;
-  padding-bottom: 5px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  position: relative;
+  padding: 15px 20px 0 15px;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
 }
 
 .tag-tree {
-  padding-left: 18px;
-
-  &.master {
-    padding-left: 0;
-  }
-
+  display: flex;
+  flex-grow: 1;
+  padding: 0 0 0 18px;
   cursor: pointer;
   font-size: $font-size;
 
+  &.master {
+    padding-left: 0;
+    display: block;
+    flex-grow: 1;
+
+    // Make sure we have padding at the bottom of the scrollable content so that the last tag
+    // is not cut off (under scrollbar) since scrollbar is set to overlay content
+    &:last-child {
+      padding-bottom: 15px;
+    }
+  }
+
+  // Make sure Angular div from the ng-if is growing in width
+  > div {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
   .self {
-
-    min-width: 120px;
-    width: 100%;
-
-    min-height: $tag-height;
+    // display: flex;
+    flex-grow: 1;
 
     @mixin on-hover() {
       color: $selected-text-color;
@@ -77,15 +102,12 @@ $tag-height: 26px;
         color: $selected-text-color;
       }
       &:before {
-        margin-top: -6px;
         content: '';
         min-height: $tag-height;
         position: absolute;
-        width: 100%;
         left: 0;
         right: 0;
         z-index: -1;
-        // background: $tags-selected-bg-color;
         $color-1: rgba(190,212,219,0.5);
         $color-2: rgba(206,203,216,0.5);
         background: $color-1; /* Old browsers */
@@ -117,35 +139,83 @@ $tag-height: 26px;
       opacity: 0.5;
     }
 
+    &:hover {
+      .action-menu button {
+        opacity: 1 !important;
+      }
+    }
+
     &:hover:not(.selected) {
       @include on-hover();
     }
 
-    display: table;
+    .new-tag-form {
+      display: flex;
+      flex-grow: 1;
+
+      input {
+        margin: 0;
+        padding: 0;
+        padding-top: 2px;
+        background-color: transparent;
+        font-size: $font-size;
+        border: 0;
+        outline: 0;
+      }
+    }
 
     .tag-info {
-      min-height: 100%;
-      height: 100%;
-      position: relative;
-      display: table-cell;
       display: flex;
+      flex-grow: 1;
       min-height: $tag-height;
+      line-height: $tag-height;
 
-      &:hover {
-       .hover-menu {
-         display: inline-block;
-       }
+      &.level-1 {
+        .title {
+          font-weight: 600;
+        }
       }
 
-      .hover-menu {
-        display: none;
-        margin-top: -3px;
-        float: right;
-        position: absolute;
-        right: 20px;
-        top: 0;
+      .circle {
+        margin: 8px 5px 0 0;
+        min-width: 11px;
+        min-height: 11px;
+      }
+
+      input.title {
+        display: flex;
+        flex-grow: 1;
+        margin: 0;
+        padding: 0;
+        font-family: $font-family;
+        font-size: $font-size;
+        line-height: $tag-height;
+        height: $tag-height;
+      }
+
+      .title {
+        display: flex;
+        background-color: transparent;
+        font-weight: 200;
+        font-size: $font-size;
+        border: none;
+        cursor: pointer;
+        text-overflow: ellipsis;
+        pointer-events: none;
+        white-space: nowrap;
+      }
+
+      .action-menu {
+        display: inline-flex;
+        margin-left: 10px;
+        height: $tag-height;
+        font-size: 12px;
+        line-height: $tag-height;
 
         button {
+          opacity: 0;
+          margin-top: 3px;
+          margin-right: 3px;
           font-size: 14px;
 
           $button-bg: #eff2fb;
@@ -155,6 +225,11 @@ $tag-height: 26px;
           line-height: 10px;
           border: 1px solid rgba(black, 0.15);
           outline: none;
+          transition: opacity 0.08s ease;
+
+          &:last-child {
+            margin-right: 0;
+          }
 
           &.half {
             width: 25px;
@@ -175,51 +250,6 @@ $tag-height: 26px;
           }
         }
       }
-
-      .new-tag-form {
-        margin-top: -5px;
-        width: 70%;
-        input {
-          background-color: transparent;
-          border: 0;
-          outline: 0;
-          font-size: $font-size;
-          padding: 0;
-          margin: 0;
-          padding-top: 2px;
-        }
-      }
-
-      &.level-1 {
-        .title {
-          font-weight: 600;
-        }
-      }
-
-      .circle {
-        margin-right: 5px;
-      }
-
-     input.title {
-       border-bottom: 0;
-       width: 80%;
-       outline: 0;
-       margin: 0;
-       padding: 0;
-       margin-top: -15px;
-       padding-top: 2px;
-     }
-
-     .title {
-       background-color: transparent;
-       font-weight: 200;
-       font-size: $font-size;
-       border: none;
-       cursor: pointer;
-       text-overflow: ellipsis;
-       pointer-events: none;
-     }
-   }
-
+    }
   }
 }

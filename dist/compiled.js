@@ -34431,7 +34431,7 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
 
   var componentManager = new window.ComponentManager([], function () {
     // on ready
-    $scope.platform = componentManager.platform;
+    $rootScope.platform = componentManager.platform;
   });
 
   var delimiter = ".";
@@ -34706,7 +34706,6 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
   };
 
   $scope.selectTag = function (tag, multiSelect) {
-
     var isSmartTag = tag.content_type == smartTagContentType;
     // Multi selection for smart tags is not possible.
     if (isSmartTag) {
@@ -35195,6 +35194,7 @@ var TagTree = function () {
           generation++;
           parent = parent.parent;
         }
+
         return generation;
       };
 
@@ -35264,7 +35264,7 @@ angular.module('app').directive('tagTree', function () {
     "{{tag.displayTitle}}\n" +
     "</div>\n" +
     "<input class='title' mb-autofocus='true' ng-if='!tag.dummy &amp;&amp; tag.editing' ng-keyup='$event.keyCode == 13 &amp;&amp; saveTagRename(tag)' ng-model='tag.displayTitle' should-focus='true'>\n" +
-    "<div class='hover-menu' ng-if='!tag.dummy &amp;&amp; !tag.editing &amp;&amp; tag.selected'>\n" +
+    "<div class='action-menu' ng-if='!tag.dummy &amp;&amp; tag.selected &amp;&amp; !tag.editing'>\n" +
     "<button class='half danger' ng-click='removeTag(tag); $event.stopPropagation();' ng-if='!tag.master'>–</button>\n" +
     "<button ng-click='addChild($event, tag);'>+</button>\n" +
     "</div>\n" +

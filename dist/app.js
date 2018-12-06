@@ -543,7 +543,7 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
 
   var componentManager = new window.ComponentManager([], function () {
     // on ready
-    $scope.platform = componentManager.platform;
+    $rootScope.platform = componentManager.platform;
   });
 
   var delimiter = ".";
@@ -818,7 +818,6 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
   };
 
   $scope.selectTag = function (tag, multiSelect) {
-
     var isSmartTag = tag.content_type == smartTagContentType;
     // Multi selection for smart tags is not possible.
     if (isSmartTag) {
@@ -1306,6 +1305,7 @@ var TagTree = function () {
           generation++;
           parent = parent.parent;
         }
+
         return generation;
       };
 
