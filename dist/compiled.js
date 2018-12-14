@@ -33893,535 +33893,638 @@ var _createClass2 = function () { function defineProperties(target, props) { for
 
 function _classCallCheck2(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var _createClass = function () {
-  function defineProperties(target, props) {
-    for (var i = 0; i < props.length; i++) {
-      var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
-    }
-  }return function (Constructor, protoProps, staticProps) {
-    if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
-  };
-}();
+(function e(t, n, r) {
+  function s(o, u) {
+    if (!n[o]) {
+      if (!t[o]) {
+        var a = typeof require == "function" && require;if (!u && a) return a(o, !0);if (i) return i(o, !0);var f = new Error("Cannot find module '" + o + "'");throw f.code = "MODULE_NOT_FOUND", f;
+      }var l = n[o] = { exports: {} };t[o][0].call(l.exports, function (e) {
+        var n = t[o][1][e];return s(n ? n : e);
+      }, l, l.exports, e, t, n, r);
+    }return n[o].exports;
+  }var i = typeof require == "function" && require;for (var o = 0; o < r.length; o++) {
+    s(r[o]);
+  }return s;
+})({ 1: [function (require, module, exports) {
+    "use strict";
 
-function _classCallCheck(instance, Constructor) {
-  if (!(instance instanceof Constructor)) {
-    throw new TypeError("Cannot call a class as a function");
-  }
-}
-
-var ComponentManager = function () {
-  function ComponentManager(permissions, onReady) {
-    var _this = this;
-
-    _classCallCheck(this, ComponentManager);
-
-    this.sentMessages = [];
-    this.messageQueue = [];
-    this.initialPermissions = permissions;
-    this.loggingEnabled = false;
-    this.acceptsThemes = true;
-    this.onReadyCallback = onReady;
-
-    this.coallesedSaving = true;
-    this.coallesedSavingDelay = 250;
-
-    var messageHandler = function messageHandler(event, mobileSource) {
-      if (_this.loggingEnabled) {
-        console.log("Components API Message received:", event.data, "mobile?", mobileSource);
-      }
-
-      // The first message will be the most reliable one, so we won't change it after any subsequent events,
-      // in case you receive an event from another window.
-      if (!_this.origin) {
-        _this.origin = event.origin;
-      }
-      _this.mobileSource = mobileSource;
-      // If from mobile app, JSON needs to be used.
-      var data = mobileSource ? JSON.parse(event.data) : event.data;
-      _this.handleMessage(data);
-    };
-
-    // Mobile (React Native) uses `document`, web/desktop uses `window`.addEventListener
-    // for postMessage API to work properly.
-
-    document.addEventListener("message", function (event) {
-      messageHandler(event, true);
-    }, false);
-
-    window.addEventListener("message", function (event) {
-      messageHandler(event, false);
-    }, false);
-  }
-
-  _createClass(ComponentManager, [{
-    key: "handleMessage",
-    value: function handleMessage(payload) {
-      if (payload.action === "component-registered") {
-        this.sessionKey = payload.sessionKey;
-        this.componentData = payload.componentData;
-        this.onReady(payload.data);
-
-        if (this.loggingEnabled) {
-          console.log("Component successfully registered with payload:", payload);
+    var _createClass = function () {
+      function defineProperties(target, props) {
+        for (var i = 0; i < props.length; i++) {
+          var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
         }
-      } else if (payload.action === "themes") {
-        if (this.acceptsThemes) {
-          this.activateThemes(payload.data.themes);
-        }
-      } else if (payload.original) {
-        // get callback from queue
-        var originalMessage = this.sentMessages.filter(function (message) {
-          return message.messageId === payload.original.messageId;
-        })[0];
-
-        if (!originalMessage) {
-          // Connection must have been reset. Alert the user.
-          alert("This extension is attempting to communicate with Standard Notes, but an error is preventing it from doing so. Please restart this extension and try again.");
-        }
-
-        if (originalMessage.callback) {
-          originalMessage.callback(payload.data);
-        }
-      }
-    }
-  }, {
-    key: "onReady",
-    value: function onReady(data) {
-      if (this.initialPermissions && this.initialPermissions.length > 0) {
-        this.requestPermissions(this.initialPermissions);
-      }
-
-      var _iteratorNormalCompletion = true;
-      var _didIteratorError = false;
-      var _iteratorError = undefined;
-
-      try {
-        for (var _iterator = this.messageQueue[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-          var message = _step.value;
-
-          this.postMessage(message.action, message.data, message.callback);
-        }
-      } catch (err) {
-        _didIteratorError = true;
-        _iteratorError = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion && _iterator.return) {
-            _iterator.return();
-          }
-        } finally {
-          if (_didIteratorError) {
-            throw _iteratorError;
-          }
-        }
-      }
-
-      this.messageQueue = [];
-      this.environment = data.environment;
-      this.platform = data.platform;
-      this.uuid = data.uuid;
-
-      if (this.onReadyCallback) {
-        this.onReadyCallback();
-      }
-    }
-  }, {
-    key: "getSelfComponentUUID",
-    value: function getSelfComponentUUID() {
-      return this.uuid;
-    }
-  }, {
-    key: "isRunningInDesktopApplication",
-    value: function isRunningInDesktopApplication() {
-      return this.environment === "desktop";
-    }
-  }, {
-    key: "setComponentDataValueForKey",
-    value: function setComponentDataValueForKey(key, value) {
-      this.componentData[key] = value;
-      this.postMessage("set-component-data", { componentData: this.componentData }, function (data) {});
-    }
-  }, {
-    key: "clearComponentData",
-    value: function clearComponentData() {
-      this.componentData = {};
-      this.postMessage("set-component-data", { componentData: this.componentData }, function (data) {});
-    }
-  }, {
-    key: "componentDataValueForKey",
-    value: function componentDataValueForKey(key) {
-      return this.componentData[key];
-    }
-  }, {
-    key: "postMessage",
-    value: function postMessage(action, data, callback) {
-      if (!this.sessionKey) {
-        this.messageQueue.push({
-          action: action,
-          data: data,
-          callback: callback
-        });
-        return;
-      }
-
-      var message = {
-        action: action,
-        data: data,
-        messageId: this.generateUUID(),
-        sessionKey: this.sessionKey,
-        api: "component"
+      }return function (Constructor, protoProps, staticProps) {
+        if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
       };
+    }();
 
-      var sentMessage = JSON.parse(JSON.stringify(message));
-      sentMessage.callback = callback;
-      this.sentMessages.push(sentMessage);
+    function _classCallCheck(instance, Constructor) {
+      if (!(instance instanceof Constructor)) {
+        throw new TypeError("Cannot call a class as a function");
+      }
+    }
 
-      // Mobile (React Native) requires a string for the postMessage API.
-      if (this.mobileSource) {
-        message = JSON.stringify(message);
+    var ComponentManager = function () {
+      function ComponentManager(permissions, onReady) {
+        _classCallCheck(this, ComponentManager);
+
+        this.sentMessages = [];
+        this.messageQueue = [];
+        this.loggingEnabled = false;
+        this.acceptsThemes = true;
+        this.activeThemes = [];
+
+        this.initialPermissions = permissions;
+        this.onReadyCallback = onReady;
+
+        this.coallesedSaving = true;
+        this.coallesedSavingDelay = 250;
+
+        this.registerMessageHandler();
       }
 
-      if (this.loggingEnabled) {
-        console.log("Posting message:", message);
-      }
+      _createClass(ComponentManager, [{
+        key: "registerMessageHandler",
+        value: function registerMessageHandler() {
+          var _this = this;
 
-      window.parent.postMessage(message, this.origin);
-    }
-  }, {
-    key: "setSize",
-    value: function setSize(type, width, height) {
-      this.postMessage("set-size", { type: type, width: width, height: height }, function (data) {});
-    }
-  }, {
-    key: "requestPermissions",
-    value: function requestPermissions(permissions, callback) {
-      this.postMessage("request-permissions", { permissions: permissions }, function (data) {
-        callback && callback();
-      }.bind(this));
-    }
-  }, {
-    key: "streamItems",
-    value: function streamItems(contentTypes, callback) {
-      if (!Array.isArray(contentTypes)) {
-        contentTypes = [contentTypes];
-      }
-      this.postMessage("stream-items", { content_types: contentTypes }, function (data) {
-        callback(data.items);
-      }.bind(this));
-    }
-  }, {
-    key: "streamContextItem",
-    value: function streamContextItem(callback) {
-      this.postMessage("stream-context-item", null, function (data) {
-        var item = data.item;
+          var messageHandler = function messageHandler(event, mobileSource) {
+            if (_this.loggingEnabled) {
+              console.log("Components API Message received:", event.data, "mobile?", mobileSource);
+            }
+
+            // The first message will be the most reliable one, so we won't change it after any subsequent events,
+            // in case you receive an event from another window.
+            if (!_this.origin) {
+              _this.origin = event.origin;
+            }
+            _this.mobileSource = mobileSource;
+            // If from mobile app, JSON needs to be used.
+            var data = mobileSource ? JSON.parse(event.data) : event.data;
+            _this.handleMessage(data);
+          };
+
+          // Mobile (React Native) uses `document`, web/desktop uses `window`.addEventListener
+          // for postMessage API to work properly.
+
+          document.addEventListener("message", function (event) {
+            messageHandler(event, true);
+          }, false);
+
+          window.addEventListener("message", function (event) {
+            messageHandler(event, false);
+          }, false);
+        }
+      }, {
+        key: "handleMessage",
+        value: function handleMessage(payload) {
+          if (payload.action === "component-registered") {
+            this.sessionKey = payload.sessionKey;
+            this.componentData = payload.componentData;
+
+            this.onReady(payload.data);
+
+            if (this.loggingEnabled) {
+              console.log("Component successfully registered with payload:", payload);
+            }
+          } else if (payload.action === "themes") {
+            if (this.acceptsThemes) {
+              this.activateThemes(payload.data.themes);
+            }
+          } else if (payload.original) {
+            // get callback from queue
+            var originalMessage = this.sentMessages.filter(function (message) {
+              return message.messageId === payload.original.messageId;
+            })[0];
+
+            if (!originalMessage) {
+              // Connection must have been reset. Alert the user.
+              alert("This extension is attempting to communicate with Standard Notes, but an error is preventing it from doing so. Please restart this extension and try again.");
+            }
+
+            if (originalMessage.callback) {
+              originalMessage.callback(payload.data);
+            }
+          }
+        }
+      }, {
+        key: "onReady",
+        value: function onReady(data) {
+          if (this.initialPermissions && this.initialPermissions.length > 0) {
+            this.requestPermissions(this.initialPermissions);
+          }
+
+          var _iteratorNormalCompletion = true;
+          var _didIteratorError = false;
+          var _iteratorError = undefined;
+
+          try {
+            for (var _iterator = this.messageQueue[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+              var message = _step.value;
+
+              this.postMessage(message.action, message.data, message.callback);
+            }
+          } catch (err) {
+            _didIteratorError = true;
+            _iteratorError = err;
+          } finally {
+            try {
+              if (!_iteratorNormalCompletion && _iterator.return) {
+                _iterator.return();
+              }
+            } finally {
+              if (_didIteratorError) {
+                throw _iteratorError;
+              }
+            }
+          }
+
+          this.messageQueue = [];
+          this.environment = data.environment;
+          this.platform = data.platform;
+          this.uuid = data.uuid;
+
+          if (this.loggingEnabled) {
+            console.log("onReadyData", data);
+          }
+
+          this.activateThemes(data.activeThemeUrls || []);
+
+          if (this.onReadyCallback) {
+            this.onReadyCallback();
+          }
+        }
+      }, {
+        key: "getSelfComponentUUID",
+        value: function getSelfComponentUUID() {
+          return this.uuid;
+        }
+      }, {
+        key: "isRunningInDesktopApplication",
+        value: function isRunningInDesktopApplication() {
+          return this.environment === "desktop";
+        }
+      }, {
+        key: "setComponentDataValueForKey",
+        value: function setComponentDataValueForKey(key, value) {
+          this.componentData[key] = value;
+          this.postMessage("set-component-data", { componentData: this.componentData }, function (data) {});
+        }
+      }, {
+        key: "clearComponentData",
+        value: function clearComponentData() {
+          this.componentData = {};
+          this.postMessage("set-component-data", { componentData: this.componentData }, function (data) {});
+        }
+      }, {
+        key: "componentDataValueForKey",
+        value: function componentDataValueForKey(key) {
+          return this.componentData[key];
+        }
+      }, {
+        key: "postMessage",
+        value: function postMessage(action, data, callback) {
+          if (!this.sessionKey) {
+            this.messageQueue.push({
+              action: action,
+              data: data,
+              callback: callback
+            });
+            return;
+          }
+
+          var message = {
+            action: action,
+            data: data,
+            messageId: this.generateUUID(),
+            sessionKey: this.sessionKey,
+            api: "component"
+          };
+
+          var sentMessage = JSON.parse(JSON.stringify(message));
+          sentMessage.callback = callback;
+          this.sentMessages.push(sentMessage);
+
+          // Mobile (React Native) requires a string for the postMessage API.
+          if (this.mobileSource) {
+            message = JSON.stringify(message);
+          }
+
+          if (this.loggingEnabled) {
+            console.log("Posting message:", message);
+          }
+
+          window.parent.postMessage(message, this.origin);
+        }
+      }, {
+        key: "setSize",
+        value: function setSize(type, width, height) {
+          this.postMessage("set-size", { type: type, width: width, height: height }, function (data) {});
+        }
+      }, {
+        key: "requestPermissions",
+        value: function requestPermissions(permissions, callback) {
+          this.postMessage("request-permissions", { permissions: permissions }, function (data) {
+            callback && callback();
+          }.bind(this));
+        }
+      }, {
+        key: "streamItems",
+        value: function streamItems(contentTypes, callback) {
+          if (!Array.isArray(contentTypes)) {
+            contentTypes = [contentTypes];
+          }
+          this.postMessage("stream-items", { content_types: contentTypes }, function (data) {
+            callback(data.items);
+          }.bind(this));
+        }
+      }, {
+        key: "streamContextItem",
+        value: function streamContextItem(callback) {
+          this.postMessage("stream-context-item", null, function (data) {
+            var item = data.item;
+            /*
+              When an item is saved via saveItem, its updated_at value is set client side to the current date.
+              If we make a change locally, then for whatever reason receive an item via streamItems/streamContextItem,
+              we want to ignore that change if it was made prior to the latest change we've made.
+               Update 1/22/18: However, if a user is restoring a note from version history, this change
+              will not pass through this filter and will thus be ignored. Because the client now handles
+              this case with isMetadataUpdate, we no longer need the below.
+            */
+            // if(this.streamedContextItem && this.streamedContextItem.uuid == item.uuid
+            //   && this.streamedContextItem.updated_at > item.updated_at) {
+            //   return;
+            // }
+            // this.streamedContextItem = item;
+            callback(item);
+          });
+        }
+      }, {
+        key: "selectItem",
+        value: function selectItem(item) {
+          this.postMessage("select-item", { item: this.jsonObjectForItem(item) });
+        }
+      }, {
+        key: "createItem",
+        value: function createItem(item, callback) {
+          this.postMessage("create-item", { item: this.jsonObjectForItem(item) }, function (data) {
+            var item = data.item;
+
+            // A previous version of the SN app had an issue where the item in the reply to create-item
+            // would be nested inside "items" and not "item". So handle both cases here.
+            if (!item && data.items && data.items.length > 0) {
+              item = data.items[0];
+            }
+
+            this.associateItem(item);
+            callback && callback(item);
+          }.bind(this));
+        }
+      }, {
+        key: "createItems",
+        value: function createItems(items, callback) {
+          var _this2 = this;
+
+          var mapped = items.map(function (item) {
+            return _this2.jsonObjectForItem(item);
+          });
+          this.postMessage("create-items", { items: mapped }, function (data) {
+            callback && callback(data.items);
+          }.bind(this));
+        }
+      }, {
+        key: "associateItem",
+        value: function associateItem(item) {
+          this.postMessage("associate-item", { item: this.jsonObjectForItem(item) });
+        }
+      }, {
+        key: "deassociateItem",
+        value: function deassociateItem(item) {
+          this.postMessage("deassociate-item", { item: this.jsonObjectForItem(item) });
+        }
+      }, {
+        key: "clearSelection",
+        value: function clearSelection() {
+          this.postMessage("clear-selection", { content_type: "Tag" });
+        }
+      }, {
+        key: "deleteItem",
+        value: function deleteItem(item, callback) {
+          this.deleteItems([item], callback);
+        }
+      }, {
+        key: "deleteItems",
+        value: function deleteItems(items, callback) {
+          var params = {
+            items: items.map(function (item) {
+              return this.jsonObjectForItem(item);
+            }.bind(this))
+          };
+
+          this.postMessage("delete-items", params, function (data) {
+            callback && callback(data);
+          });
+        }
+      }, {
+        key: "sendCustomEvent",
+        value: function sendCustomEvent(action, data, callback) {
+          this.postMessage(action, data, function (data) {
+            callback && callback(data);
+          }.bind(this));
+        }
+      }, {
+        key: "saveItem",
+        value: function saveItem(item, callback) {
+          var skipDebouncer = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+
+          this.saveItems([item], callback, skipDebouncer);
+        }
+
+        /* Presave allows clients to perform any actions last second before the save actually occurs (like setting previews).
+           Saves debounce by default, so if a client needs to compute a property on an item before saving, it's best to
+           hook into the debounce cycle so that clients don't have to implement their own debouncing.
+         */
+
+      }, {
+        key: "saveItemWithPresave",
+        value: function saveItemWithPresave(item, presave, callback) {
+          this.saveItemsWithPresave([item], presave, callback);
+        }
+      }, {
+        key: "saveItemsWithPresave",
+        value: function saveItemsWithPresave(items, presave, callback) {
+          this.saveItems(items, callback, false, presave);
+        }
+
         /*
-          When an item is saved via saveItem, its updated_at value is set client side to the current date.
-          If we make a change locally, then for whatever reason receive an item via streamItems/streamContextItem,
-          we want to ignore that change if it was made prior to the latest change we've made.
-           Update 1/22/18: However, if a user is restoring a note from version history, this change
-          will not pass through this filter and will thus be ignored. Because the client now handles
-          this case with isMetadataUpdate, we no longer need the below.
-        */
-        // if(this.streamedContextItem && this.streamedContextItem.uuid == item.uuid
-        //   && this.streamedContextItem.updated_at > item.updated_at) {
-        //   return;
-        // }
-        // this.streamedContextItem = item;
-        callback(item);
-      });
-    }
-  }, {
-    key: "selectItem",
-    value: function selectItem(item) {
-      this.postMessage("select-item", { item: this.jsonObjectForItem(item) });
-    }
-  }, {
-    key: "createItem",
-    value: function createItem(item, callback) {
-      this.postMessage("create-item", { item: this.jsonObjectForItem(item) }, function (data) {
-        var item = data.item;
+        skipDebouncer allows saves to go through right away rather than waiting for timeout.
+        This should be used when saving items via other means besides keystrokes.
+         */
 
-        // A previous version of the SN app had an issue where the item in the reply to create-item
-        // would be nested inside "items" and not "item". So handle both cases here.
-        if (!item && data.items && data.items.length > 0) {
-          item = data.items[0];
-        }
+      }, {
+        key: "saveItems",
+        value: function saveItems(items, callback) {
+          var _this3 = this;
 
-        this.associateItem(item);
-        callback && callback(item);
-      }.bind(this));
-    }
-  }, {
-    key: "createItems",
-    value: function createItems(items, callback) {
-      var _this2 = this;
+          var skipDebouncer = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+          var presave = arguments[3];
 
-      var mapped = items.map(function (item) {
-        return _this2.jsonObjectForItem(item);
-      });
-      this.postMessage("create-items", { items: mapped }, function (data) {
-        callback && callback(data.items);
-      }.bind(this));
-    }
-  }, {
-    key: "associateItem",
-    value: function associateItem(item) {
-      this.postMessage("associate-item", { item: this.jsonObjectForItem(item) });
-    }
-  }, {
-    key: "deassociateItem",
-    value: function deassociateItem(item) {
-      this.postMessage("deassociate-item", { item: this.jsonObjectForItem(item) });
-    }
-  }, {
-    key: "clearSelection",
-    value: function clearSelection() {
-      this.postMessage("clear-selection", { content_type: "Tag" });
-    }
-  }, {
-    key: "deleteItem",
-    value: function deleteItem(item, callback) {
-      this.deleteItems([item], callback);
-    }
-  }, {
-    key: "deleteItems",
-    value: function deleteItems(items, callback) {
-      var params = {
-        items: items.map(function (item) {
-          return this.jsonObjectForItem(item);
-        }.bind(this))
-      };
+          var saveBlock = function saveBlock() {
+            // presave block allows client to gain the benefit of performing something in the debounce cycle.
+            presave && presave();
 
-      this.postMessage("delete-items", params, function (data) {
-        callback && callback(data);
-      });
-    }
-  }, {
-    key: "sendCustomEvent",
-    value: function sendCustomEvent(action, data, callback) {
-      this.postMessage(action, data, function (data) {
-        callback && callback(data);
-      }.bind(this));
-    }
-  }, {
-    key: "saveItem",
-    value: function saveItem(item, callback) {
-      var skipDebouncer = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+            var mappedItems = items.map(function (item) {
+              item.updated_at = new Date();
+              return this.jsonObjectForItem(item);
+            }.bind(_this3));
 
-      this.saveItems([item], callback, skipDebouncer);
-    }
+            _this3.postMessage("save-items", { items: mappedItems }, function (data) {
+              callback && callback();
+            });
+          };
 
-    /* Presave allows clients to perform any actions last second before the save actually occurs (like setting previews).
-       Saves debounce by default, so if a client needs to compute a property on an item before saving, it's best to
-       hook into the debounce cycle so that clients don't have to implement their own debouncing.
-     */
+          /*
+            Coallesed saving prevents saves from being made after every keystroke, and instead
+            waits coallesedSavingDelay before performing action. For example, if a user types a keystroke, and the clienet calls saveItem,
+            a 250ms delay will begin. If they type another keystroke within 250ms, the previously pending
+            save will be cancelled, and another 250ms delay occurs. If ater 250ms the pending delay is not cleared by a future call,
+            the save will finally trigger.
+             Note: it's important to modify saving items updated_at immediately and not after delay. If you modify after delay,
+            a delayed sync could just be wrapping up, and will send back old data and replace what the user has typed.
+          */
+          if (this.coallesedSaving == true && !skipDebouncer) {
+            if (this.pendingSave) {
+              clearTimeout(this.pendingSave);
+            }
 
-  }, {
-    key: "saveItemWithPresave",
-    value: function saveItemWithPresave(item, presave, callback) {
-      this.saveItemsWithPresave([item], presave, callback);
-    }
-  }, {
-    key: "saveItemsWithPresave",
-    value: function saveItemsWithPresave(items, presave, callback) {
-      this.saveItems(items, callback, false, presave);
-    }
-
-    /*
-    skipDebouncer allows saves to go through right away rather than waiting for timeout.
-    This should be used when saving items via other means besides keystrokes.
-     */
-
-  }, {
-    key: "saveItems",
-    value: function saveItems(items, callback) {
-      var _this3 = this;
-
-      var skipDebouncer = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
-      var presave = arguments[3];
-
-      var saveBlock = function saveBlock() {
-        // presave block allows client to gain the benefit of performing something in the debounce cycle.
-        presave && presave();
-
-        var mappedItems = items.map(function (item) {
-          item.updated_at = new Date();
-          return this.jsonObjectForItem(item);
-        }.bind(_this3));
-
-        _this3.postMessage("save-items", { items: mappedItems }, function (data) {
-          callback && callback();
-        });
-      };
-
-      /*
-        Coallesed saving prevents saves from being made after every keystroke, and instead
-        waits coallesedSavingDelay before performing action. For example, if a user types a keystroke, and the clienet calls saveItem,
-        a 250ms delay will begin. If they type another keystroke within 250ms, the previously pending
-        save will be cancelled, and another 250ms delay occurs. If ater 250ms the pending delay is not cleared by a future call,
-        the save will finally trigger.
-         Note: it's important to modify saving items updated_at immediately and not after delay. If you modify after delay,
-        a delayed sync could just be wrapping up, and will send back old data and replace what the user has typed.
-      */
-      if (this.coallesedSaving == true && !skipDebouncer) {
-        if (this.pendingSave) {
-          clearTimeout(this.pendingSave);
-        }
-
-        this.pendingSave = setTimeout(function () {
-          saveBlock();
-        }, this.coallesedSavingDelay);
-      } else {
-        saveBlock();
-      }
-    }
-  }, {
-    key: "jsonObjectForItem",
-    value: function jsonObjectForItem(item) {
-      var copy = Object.assign({}, item);
-      copy.children = null;
-      copy.parent = null;
-      return copy;
-    }
-  }, {
-    key: "getItemAppDataValue",
-    value: function getItemAppDataValue(item, key) {
-      var AppDomain = "org.standardnotes.sn";
-      var data = item.content.appData && item.content.appData[AppDomain];
-      if (data) {
-        return data[key];
-      } else {
-        return null;
-      }
-    }
-
-    /* Themes */
-
-  }, {
-    key: "activateThemes",
-    value: function activateThemes(urls) {
-      this.deactivateAllCustomThemes();
-
-      if (this.loggingEnabled) {
-        console.log("Activating themes:", urls);
-      }
-
-      if (!urls) {
-        return;
-      }
-
-      var _iteratorNormalCompletion2 = true;
-      var _didIteratorError2 = false;
-      var _iteratorError2 = undefined;
-
-      try {
-        for (var _iterator2 = urls[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-          var url = _step2.value;
-
-          if (!url) {
-            continue;
-          }
-
-          var link = document.createElement("link");
-          link.href = url;
-          link.type = "text/css";
-          link.rel = "stylesheet";
-          link.media = "screen,print";
-          link.className = "custom-theme";
-          document.getElementsByTagName("head")[0].appendChild(link);
-        }
-      } catch (err) {
-        _didIteratorError2 = true;
-        _iteratorError2 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion2 && _iterator2.return) {
-            _iterator2.return();
-          }
-        } finally {
-          if (_didIteratorError2) {
-            throw _iteratorError2;
+            this.pendingSave = setTimeout(function () {
+              saveBlock();
+            }, this.coallesedSavingDelay);
+          } else {
+            saveBlock();
           }
         }
-      }
-    }
-  }, {
-    key: "deactivateAllCustomThemes",
-    value: function deactivateAllCustomThemes() {
-      // make copy, as it will be modified during loop
-      // `getElementsByClassName` is an HTMLCollection, not an Array
-      var elements = Array.from(document.getElementsByClassName("custom-theme")).slice();
-      var _iteratorNormalCompletion3 = true;
-      var _didIteratorError3 = false;
-      var _iteratorError3 = undefined;
+      }, {
+        key: "jsonObjectForItem",
+        value: function jsonObjectForItem(item) {
+          var copy = Object.assign({}, item);
+          copy.children = null;
+          copy.parent = null;
+          return copy;
+        }
+      }, {
+        key: "getItemAppDataValue",
+        value: function getItemAppDataValue(item, key) {
+          var AppDomain = "org.standardnotes.sn";
+          var data = item.content.appData && item.content.appData[AppDomain];
+          if (data) {
+            return data[key];
+          } else {
+            return null;
+          }
+        }
 
-      try {
-        for (var _iterator3 = elements[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-          var element = _step3.value;
+        /* Themes */
 
+      }, {
+        key: "activateThemes",
+        value: function activateThemes(incomingUrls) {
+          if (this.loggingEnabled) {
+            console.log("Incoming themes", incomingUrls);
+          }
+          if (this.activeThemes.sort().toString() == incomingUrls.sort().toString()) {
+            // incoming are same as active, do nothing
+            return;
+          }
+
+          var themesToActivate = incomingUrls || [];
+          var themesToDeactivate = [];
+
+          var _iteratorNormalCompletion2 = true;
+          var _didIteratorError2 = false;
+          var _iteratorError2 = undefined;
+
+          try {
+            for (var _iterator2 = this.activeThemes[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+              var activeUrl = _step2.value;
+
+              if (!incomingUrls.includes(activeUrl)) {
+                // active not present in incoming, deactivate it
+                themesToDeactivate.push(activeUrl);
+              } else {
+                // already present in active themes, remove it from themesToActivate
+                themesToActivate = themesToActivate.filter(function (candidate) {
+                  return candidate != activeUrl;
+                });
+              }
+            }
+          } catch (err) {
+            _didIteratorError2 = true;
+            _iteratorError2 = err;
+          } finally {
+            try {
+              if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                _iterator2.return();
+              }
+            } finally {
+              if (_didIteratorError2) {
+                throw _iteratorError2;
+              }
+            }
+          }
+
+          if (this.loggingEnabled) {
+            console.log("Deactivating themes:", themesToDeactivate);
+            console.log("Activating themes:", themesToActivate);
+          }
+
+          var _iteratorNormalCompletion3 = true;
+          var _didIteratorError3 = false;
+          var _iteratorError3 = undefined;
+
+          try {
+            for (var _iterator3 = themesToDeactivate[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+              var theme = _step3.value;
+
+              this.deactivateTheme(theme);
+            }
+          } catch (err) {
+            _didIteratorError3 = true;
+            _iteratorError3 = err;
+          } finally {
+            try {
+              if (!_iteratorNormalCompletion3 && _iterator3.return) {
+                _iterator3.return();
+              }
+            } finally {
+              if (_didIteratorError3) {
+                throw _iteratorError3;
+              }
+            }
+          }
+
+          this.activeThemes = incomingUrls;
+
+          var _iteratorNormalCompletion4 = true;
+          var _didIteratorError4 = false;
+          var _iteratorError4 = undefined;
+
+          try {
+            for (var _iterator4 = themesToActivate[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+              var url = _step4.value;
+
+              if (!url) {
+                continue;
+              }
+
+              var link = document.createElement("link");
+              link.href = url;
+              link.type = "text/css";
+              link.rel = "stylesheet";
+              link.media = "screen,print";
+              link.className = "custom-theme";
+              document.getElementsByTagName("head")[0].appendChild(link);
+            }
+          } catch (err) {
+            _didIteratorError4 = true;
+            _iteratorError4 = err;
+          } finally {
+            try {
+              if (!_iteratorNormalCompletion4 && _iterator4.return) {
+                _iterator4.return();
+              }
+            } finally {
+              if (_didIteratorError4) {
+                throw _iteratorError4;
+              }
+            }
+          }
+        }
+      }, {
+        key: "themeElementForUrl",
+        value: function themeElementForUrl(url) {
+          var elements = Array.from(document.getElementsByClassName("custom-theme")).slice();
+          return elements.find(function (element) {
+            return element.href == url;
+          });
+        }
+      }, {
+        key: "deactivateTheme",
+        value: function deactivateTheme(url) {
+          var element = this.themeElementForUrl(url);
           if (element) {
             element.disabled = true;
             element.parentNode.removeChild(element);
           }
         }
-      } catch (err) {
-        _didIteratorError3 = true;
-        _iteratorError3 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion3 && _iterator3.return) {
-            _iterator3.return();
-          }
-        } finally {
-          if (_didIteratorError3) {
-            throw _iteratorError3;
+
+        /* Theme caching is currently disabled. Might be enabled in the future if neccessary. */
+        /*
+        activateCachedThemes() {
+          let themes = this.getCachedThemeUrls();
+          let writeToCache = false;
+          if(this.loggingEnabled) { console.log("Activating cached themes", themes); }
+          this.activateThemes(themes, writeToCache);
+        }
+         cacheThemeUrls(urls) {
+          if(this.loggingEnabled) { console.log("Caching theme urls", urls); }
+          localStorage.setItem("cachedThemeUrls", JSON.stringify(urls));
+        }
+         decacheThemeUrls() {
+          localStorage.removeItem("cachedThemeUrls");
+        }
+         getCachedThemeUrls() {
+          let urls = localStorage.getItem("cachedThemeUrls");
+          if(urls) {
+            return JSON.parse(urls);
+          } else {
+            return [];
           }
         }
-      }
-    }
+        */
 
-    /* Utilities */
+        /* Utilities */
 
-  }, {
-    key: "generateUUID",
-    value: function generateUUID() {
-      var crypto = window.crypto || window.msCrypto;
-      if (crypto) {
-        var buf = new Uint32Array(4);
-        crypto.getRandomValues(buf);
-        var idx = -1;
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-          idx++;
-          var r = buf[idx >> 3] >> idx % 8 * 4 & 15;
-          var v = c == 'x' ? r : r & 0x3 | 0x8;
-          return v.toString(16);
-        });
-      } else {
-        var d = new Date().getTime();
-        if (window.performance && typeof window.performance.now === "function") {
-          d += performance.now(); //use high-precision timer if available
+      }, {
+        key: "generateUUID",
+        value: function generateUUID() {
+          var crypto = window.crypto || window.msCrypto;
+          if (crypto) {
+            var buf = new Uint32Array(4);
+            crypto.getRandomValues(buf);
+            var idx = -1;
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+              idx++;
+              var r = buf[idx >> 3] >> idx % 8 * 4 & 15;
+              var v = c == 'x' ? r : r & 0x3 | 0x8;
+              return v.toString(16);
+            });
+          } else {
+            var d = new Date().getTime();
+            if (window.performance && typeof window.performance.now === "function") {
+              d += performance.now(); //use high-precision timer if available
+            }
+            var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+              var r = (d + Math.random() * 16) % 16 | 0;
+              d = Math.floor(d / 16);
+              return (c == 'x' ? r : r & 0x3 | 0x8).toString(16);
+            });
+            return uuid;
+          }
         }
-        var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-          var r = (d + Math.random() * 16) % 16 | 0;
-          d = Math.floor(d / 16);
-          return (c == 'x' ? r : r & 0x3 | 0x8).toString(16);
-        });
-        return uuid;
-      }
+      }]);
+
+      return ComponentManager;
+    }();
+
+    if (typeof module != "undefined" && typeof module.exports != "undefined") {
+      module.exports = ComponentManager;
     }
-  }]);
 
-  return ComponentManager;
-}();
-
-if (typeof module != "undefined" && typeof module.exports != "undefined") {
-  module.exports = ComponentManager;
-}
-
-if (window) {
-  window.ComponentManager = ComponentManager;
-}
-
+    if (window) {
+      window.ComponentManager = ComponentManager;
+    }
+  }, {}] }, {}, [1]);
 ;'use strict';
 
 angular.module('app', []);
@@ -34446,29 +34549,29 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
     var resolved = masterTag.rawTags.slice();
 
     var findResolvedTag = function findResolvedTag(title) {
-      var _iteratorNormalCompletion4 = true;
-      var _didIteratorError4 = false;
-      var _iteratorError4 = undefined;
+      var _iteratorNormalCompletion5 = true;
+      var _didIteratorError5 = false;
+      var _iteratorError5 = undefined;
 
       try {
-        for (var _iterator4 = masterTag.rawTags[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-          var tag = _step4.value;
+        for (var _iterator5 = masterTag.rawTags[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+          var tag = _step5.value;
 
           if (tag.content.title === title) {
             return tag;
           }
         }
       } catch (err) {
-        _didIteratorError4 = true;
-        _iteratorError4 = err;
+        _didIteratorError5 = true;
+        _iteratorError5 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion4 && _iterator4.return) {
-            _iterator4.return();
+          if (!_iteratorNormalCompletion5 && _iterator5.return) {
+            _iterator5.return();
           }
         } finally {
-          if (_didIteratorError4) {
-            throw _iteratorError4;
+          if (_didIteratorError5) {
+            throw _iteratorError5;
           }
         }
       }
@@ -34476,13 +34579,13 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
       return null;
     };
 
-    var _iteratorNormalCompletion5 = true;
-    var _didIteratorError5 = false;
-    var _iteratorError5 = undefined;
+    var _iteratorNormalCompletion6 = true;
+    var _didIteratorError6 = false;
+    var _iteratorError6 = undefined;
 
     try {
-      for (var _iterator5 = masterTag.rawTags[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-        var tag = _step5.value;
+      for (var _iterator6 = masterTag.rawTags[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+        var tag = _step6.value;
 
         var pendingDummy = tag.children && tag.children.find(function (c) {
           return c.dummy;
@@ -34495,29 +34598,29 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
         }
       }
     } catch (err) {
-      _didIteratorError5 = true;
-      _iteratorError5 = err;
+      _didIteratorError6 = true;
+      _iteratorError6 = err;
     } finally {
       try {
-        if (!_iteratorNormalCompletion5 && _iterator5.return) {
-          _iterator5.return();
+        if (!_iteratorNormalCompletion6 && _iterator6.return) {
+          _iterator6.return();
         }
       } finally {
-        if (_didIteratorError5) {
-          throw _iteratorError5;
+        if (_didIteratorError6) {
+          throw _iteratorError6;
         }
       }
     }
 
     ;
 
-    var _iteratorNormalCompletion6 = true;
-    var _didIteratorError6 = false;
-    var _iteratorError6 = undefined;
+    var _iteratorNormalCompletion7 = true;
+    var _didIteratorError7 = false;
+    var _iteratorError7 = undefined;
 
     try {
-      for (var _iterator6 = masterTag.rawTags[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-        var tag = _step6.value;
+      for (var _iterator7 = masterTag.rawTags[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+        var tag = _step7.value;
 
         var name = tag.content.title;
         var comps = name.split(delimiter);
@@ -34572,16 +34675,16 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
         }
       }
     } catch (err) {
-      _didIteratorError6 = true;
-      _iteratorError6 = err;
+      _didIteratorError7 = true;
+      _iteratorError7 = err;
     } finally {
       try {
-        if (!_iteratorNormalCompletion6 && _iterator6.return) {
-          _iterator6.return();
+        if (!_iteratorNormalCompletion7 && _iterator7.return) {
+          _iterator7.return();
         }
       } finally {
-        if (_didIteratorError6) {
-          throw _iteratorError6;
+        if (_didIteratorError7) {
+          throw _iteratorError7;
         }
       }
     }
@@ -34611,13 +34714,13 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
     var needsSave = [source];
 
     var adjustChildren = function adjustChildren(source) {
-      var _iteratorNormalCompletion7 = true;
-      var _didIteratorError7 = false;
-      var _iteratorError7 = undefined;
+      var _iteratorNormalCompletion8 = true;
+      var _didIteratorError8 = false;
+      var _iteratorError8 = undefined;
 
       try {
-        for (var _iterator7 = source.children[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
-          var child = _step7.value;
+        for (var _iterator8 = source.children[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+          var child = _step8.value;
 
           var newTitle = source.content.title + delimiter + child.content.title.split(delimiter).slice(-1)[0];
           child.content.title = newTitle;
@@ -34625,16 +34728,16 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
           adjustChildren(child);
         }
       } catch (err) {
-        _didIteratorError7 = true;
-        _iteratorError7 = err;
+        _didIteratorError8 = true;
+        _iteratorError8 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion7 && _iterator7.return) {
-            _iterator7.return();
+          if (!_iteratorNormalCompletion8 && _iterator8.return) {
+            _iterator8.return();
           }
         } finally {
-          if (_didIteratorError7) {
-            throw _iteratorError7;
+          if (_didIteratorError8) {
+            throw _iteratorError8;
           }
         }
       }
@@ -34715,27 +34818,27 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
 
     var clearMultipleTagsSelection = function clearMultipleTagsSelection() {
       if ($scope.multipleTags) {
-        var _iteratorNormalCompletion8 = true;
-        var _didIteratorError8 = false;
-        var _iteratorError8 = undefined;
+        var _iteratorNormalCompletion9 = true;
+        var _didIteratorError9 = false;
+        var _iteratorError9 = undefined;
 
         try {
-          for (var _iterator8 = $scope.multipleTags[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
-            var selectedTag = _step8.value;
+          for (var _iterator9 = $scope.multipleTags[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
+            var selectedTag = _step9.value;
 
             $scope.setSelectedForTag(selectedTag, false);
           }
         } catch (err) {
-          _didIteratorError8 = true;
-          _iteratorError8 = err;
+          _didIteratorError9 = true;
+          _iteratorError9 = err;
         } finally {
           try {
-            if (!_iteratorNormalCompletion8 && _iterator8.return) {
-              _iterator8.return();
+            if (!_iteratorNormalCompletion9 && _iterator9.return) {
+              _iterator9.return();
             }
           } finally {
-            if (_didIteratorError8) {
-              throw _iteratorError8;
+            if (_didIteratorError9) {
+              throw _iteratorError9;
             }
           }
         }
@@ -34818,13 +34921,13 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
     $timeout(function () {
       var allTags = $scope.masterTag ? $scope.masterTag.rawTags : [];
       var smartTags = $scope.smartMasterTag ? $scope.smartMasterTag.rawTags : [];
-      var _iteratorNormalCompletion9 = true;
-      var _didIteratorError9 = false;
-      var _iteratorError9 = undefined;
+      var _iteratorNormalCompletion10 = true;
+      var _didIteratorError10 = false;
+      var _iteratorError10 = undefined;
 
       try {
-        for (var _iterator9 = newTags[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
-          var tag = _step9.value;
+        for (var _iterator10 = newTags[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
+          var tag = _step10.value;
 
           var isSmartTag = tag.content_type == smartTagContentType;
           var arrayToUse = isSmartTag ? smartTags : allTags;
@@ -34853,16 +34956,16 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
           }
         }
       } catch (err) {
-        _didIteratorError9 = true;
-        _iteratorError9 = err;
+        _didIteratorError10 = true;
+        _iteratorError10 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion9 && _iterator9.return) {
-            _iterator9.return();
+          if (!_iteratorNormalCompletion10 && _iterator10.return) {
+            _iterator10.return();
           }
         } finally {
-          if (_didIteratorError9) {
-            throw _iteratorError9;
+          if (_didIteratorError10) {
+            throw _iteratorError10;
           }
         }
       }
@@ -34928,27 +35031,27 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
     function addChildren(tag) {
       deleteChain.push(tag);
       if (tag.children) {
-        var _iteratorNormalCompletion10 = true;
-        var _didIteratorError10 = false;
-        var _iteratorError10 = undefined;
+        var _iteratorNormalCompletion11 = true;
+        var _didIteratorError11 = false;
+        var _iteratorError11 = undefined;
 
         try {
-          for (var _iterator10 = tag.children[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
-            var child = _step10.value;
+          for (var _iterator11 = tag.children[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
+            var child = _step11.value;
 
             addChildren(child);
           }
         } catch (err) {
-          _didIteratorError10 = true;
-          _iteratorError10 = err;
+          _didIteratorError11 = true;
+          _iteratorError11 = err;
         } finally {
           try {
-            if (!_iteratorNormalCompletion10 && _iterator10.return) {
-              _iterator10.return();
+            if (!_iteratorNormalCompletion11 && _iterator11.return) {
+              _iterator11.return();
             }
           } finally {
-            if (_didIteratorError10) {
-              throw _iteratorError10;
+            if (_didIteratorError11) {
+              throw _iteratorError11;
             }
           }
         }
@@ -35153,29 +35256,29 @@ var TagTree = function () {
         tag.content.title = title;
 
         function renameChildren(tag) {
-          var _iteratorNormalCompletion11 = true;
-          var _didIteratorError11 = false;
-          var _iteratorError11 = undefined;
+          var _iteratorNormalCompletion12 = true;
+          var _didIteratorError12 = false;
+          var _iteratorError12 = undefined;
 
           try {
-            for (var _iterator11 = tag.children[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
-              var child = _step11.value;
+            for (var _iterator12 = tag.children[Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
+              var child = _step12.value;
 
               child.content.title = child.parent.content.title + delimiter + child.displayTitle;
               tags.push(child);
               renameChildren(child);
             }
           } catch (err) {
-            _didIteratorError11 = true;
-            _iteratorError11 = err;
+            _didIteratorError12 = true;
+            _iteratorError12 = err;
           } finally {
             try {
-              if (!_iteratorNormalCompletion11 && _iterator11.return) {
-                _iterator11.return();
+              if (!_iteratorNormalCompletion12 && _iterator12.return) {
+                _iterator12.return();
               }
             } finally {
-              if (_didIteratorError11) {
-                throw _iteratorError11;
+              if (_didIteratorError12) {
+                throw _iteratorError12;
               }
             }
           }
@@ -35206,12 +35309,7 @@ var TagTree = function () {
 
         // is newly creating tag
         if (!tag.uuid) {
-          return "default";
-        }
-
-        // Newly creating tags don't have client data
-        if (tag.clientData && tag.clientData.collapsed) {
-          return "warning";
+          return "contrast";
         }
 
         var gen = $scope.generationForTag(tag);
@@ -35223,7 +35321,16 @@ var TagTree = function () {
           4: "warning"
         }[gen];
 
-        return circleClass ? circleClass : "default";
+        if (!circleClass) {
+          circleClass = "neutral";
+        }
+
+        // Newly creating tags don't have client data
+        if (tag.clientData && tag.clientData.collapsed) {
+          circleClass += " no-bg";
+        }
+
+        return circleClass;
       };
     }]
   }]);
@@ -35243,94 +35350,55 @@ angular.module('app').directive('tagTree', function () {
   'use strict';
 
   $templateCache.put('directives/tag_cell.html',
-    "<li>\r" +
-    "\n" +
-    "<div class='self' draggable='true' drop='onDrop' ng-class='{&#39;selected&#39; : tag.selected}' ng-click='selectTag()' tag-id='tag.uuid'>\r" +
-    "\n" +
-    "{{tag.displayTitle}}\r" +
-    "\n" +
-    "</div>\r" +
-    "\n" +
-    "</li>\r" +
-    "\n" +
-    "<li ng-if='tag.children'>\r" +
-    "\n" +
-    "<ul>\r" +
-    "\n" +
-    "<div change-parent='changeParent()' class='tag-cell' ng-repeat='child in tag.children' on-select='onSelect()' tag='child'></div>\r" +
-    "\n" +
-    "</ul>\r" +
-    "\n" +
-    "</li>\r" +
-    "\n"
+    "<li>\n" +
+    "<div class='self' draggable='true' drop='onDrop' ng-class='{&#39;selected&#39; : tag.selected}' ng-click='selectTag()' tag-id='tag.uuid'>\n" +
+    "{{tag.displayTitle}}\n" +
+    "</div>\n" +
+    "</li>\n" +
+    "<li ng-if='tag.children'>\n" +
+    "<ul>\n" +
+    "<div change-parent='changeParent()' class='tag-cell' ng-repeat='child in tag.children' on-select='onSelect()' tag='child'></div>\n" +
+    "</ul>\n" +
+    "</li>\n"
   );
 
 
   $templateCache.put('directives/tag_tree.html',
-    "<div ng-if='tag'>\r" +
-    "\n" +
-    "<div class='self' draggable='true' drop='onDrop' is-draggable='isDraggable()' is-droppable='isDroppable()' ng-class='{&#39;selected&#39; : tag.selected}' ng-click='selectTag($event)' tag-id='tag.uuid'>\r" +
-    "\n" +
-    "<div class='tag-info body-text-color' ng-class='&#39;level-&#39; + generationForTag(tag)'>\r" +
-    "\n" +
-    "<div class='circle small' ng-class='circleClassForTag(tag)' ng-click='innerCollapse(tag); $event.stopPropagation();'></div>\r" +
-    "\n" +
-    "<div class='title' ng-if='!tag.dummy &amp;&amp; !tag.editing'>\r" +
-    "\n" +
-    "{{tag.displayTitle}}\r" +
-    "\n" +
-    "</div>\r" +
-    "\n" +
-    "<input class='title' mb-autofocus='true' ng-if='!tag.dummy &amp;&amp; tag.editing' ng-keyup='$event.keyCode == 13 &amp;&amp; saveTagRename(tag)' ng-model='tag.displayTitle' should-focus='true'>\r" +
-    "\n" +
-    "<div class='action-menu' ng-if='!tag.dummy &amp;&amp; tag.selected &amp;&amp; !tag.editing'>\r" +
-    "\n" +
-    "<button class='half danger' ng-click='removeTag(tag); $event.stopPropagation();' ng-if='!tag.master'>–</button>\r" +
-    "\n" +
-    "<button ng-click='addChild($event, tag);'>+</button>\r" +
-    "\n" +
-    "</div>\r" +
-    "\n" +
-    "<div class='new-tag-form' ng-if='tag.dummy'>\r" +
-    "\n" +
-    "<input mb-autofocus='true' ng-blur='saveNewTag(tag)' ng-keyup='$event.keyCode == 13 &amp;&amp; saveNewTag(tag)' ng-model='tag.content.title' placeholder='' should-focus='true'>\r" +
-    "\n" +
-    "</div>\r" +
-    "\n" +
-    "</div>\r" +
-    "\n" +
-    "</div>\r" +
-    "\n" +
-    "<div ng-if='!tag.clientData.collapsed' ng-repeat='child in tag.children'>\r" +
-    "\n" +
-    "<div change-parent='changeParent()' class='tag-tree' create-tag='createTag()' delete-tag='deleteTag()' ng-if='!child.deleted' on-select='onSelect($event)' on-toggle-collapse='onToggleCollapse()' save-tags='saveTags()' tag='child'></div>\r" +
-    "\n" +
-    "</div>\r" +
-    "\n" +
-    "</div>\r" +
-    "\n"
+    "<div ng-if='tag'>\n" +
+    "<div class='self' draggable='true' drop='onDrop' is-draggable='isDraggable()' is-droppable='isDroppable()' ng-class='{&#39;selected&#39; : tag.selected}' ng-click='selectTag($event)' tag-id='tag.uuid'>\n" +
+    "<div class='tag-info' ng-class='&#39;level-&#39; + generationForTag(tag)'>\n" +
+    "<div class='sk-circle small' ng-class='circleClassForTag(tag)' ng-click='innerCollapse(tag); $event.stopPropagation();'></div>\n" +
+    "<div class='title' ng-if='!tag.dummy &amp;&amp; !tag.editing'>\n" +
+    "{{tag.displayTitle}}\n" +
+    "</div>\n" +
+    "<input class='title' mb-autofocus='true' ng-if='!tag.dummy &amp;&amp; tag.editing' ng-keyup='$event.keyCode == 13 &amp;&amp; saveTagRename(tag)' ng-model='tag.displayTitle' should-focus='true'>\n" +
+    "<div class='action-menu' ng-if='!tag.dummy &amp;&amp; tag.selected &amp;&amp; !tag.editing'>\n" +
+    "<div class='sk-button info' ng-click='addChild($event, tag);'>\n" +
+    "<div class='sk-label'>+</div>\n" +
+    "</div>\n" +
+    "<div class='sk-button danger' ng-click='removeTag(tag); $event.stopPropagation();' ng-if='!tag.master'>\n" +
+    "<div class='sk-label'>–</div>\n" +
+    "</div>\n" +
+    "</div>\n" +
+    "<div class='new-tag-form' ng-if='tag.dummy'>\n" +
+    "<input mb-autofocus='true' ng-blur='saveNewTag(tag)' ng-keyup='$event.keyCode == 13 &amp;&amp; saveNewTag(tag)' ng-model='tag.content.title' placeholder='' should-focus='true'>\n" +
+    "</div>\n" +
+    "</div>\n" +
+    "</div>\n" +
+    "<div ng-if='!tag.clientData.collapsed' ng-repeat='child in tag.children'>\n" +
+    "<div change-parent='changeParent()' class='tag-tree' create-tag='createTag()' delete-tag='deleteTag()' ng-if='!child.deleted' on-select='onSelect($event)' on-toggle-collapse='onToggleCollapse()' save-tags='saveTags()' tag='child'></div>\n" +
+    "</div>\n" +
+    "</div>\n"
   );
 
 
   $templateCache.put('home.html',
-    "<div class='sn-component'>\r" +
-    "\n" +
-    "<div class='content'>\r" +
-    "\n" +
-    "<div class='header'>\r" +
-    "\n" +
-    "<h4 class='body-text-color'>Folders</h4>\r" +
-    "\n" +
-    "</div>\r" +
-    "\n" +
-    "<div class='tag-tree master' create-tag='createTag' delete-tag='deleteTag' ng-if='smartMasterTag.rawTags.length &gt; 0' on-select='selectTag' on-toggle-collapse='toggleCollapse' save-tags='saveTags' tag='smartMasterTag'></div>\r" +
-    "\n" +
-    "<div change-parent='changeParent' class='tag-tree master' create-tag='createTag' delete-tag='deleteTag' on-select='selectTag' on-toggle-collapse='toggleCollapse' save-tags='saveTags' tag='masterTag'></div>\r" +
-    "\n" +
-    "</div>\r" +
-    "\n" +
-    "</div>\r" +
-    "\n"
+    "<div class='sn-component'>\n" +
+    "<div class='content'>\n" +
+    "<div class='tag-tree master' create-tag='createTag' delete-tag='deleteTag' ng-if='smartMasterTag.rawTags.length &gt; 0' on-select='selectTag' on-toggle-collapse='toggleCollapse' save-tags='saveTags' tag='smartMasterTag'></div>\n" +
+    "<div change-parent='changeParent' class='tag-tree master' create-tag='createTag' delete-tag='deleteTag' on-select='selectTag' on-toggle-collapse='toggleCollapse' save-tags='saveTags' tag='masterTag'></div>\n" +
+    "</div>\n" +
+    "</div>\n"
   );
 
 }]);
