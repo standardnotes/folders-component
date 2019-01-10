@@ -1,6 +1,6 @@
 {
   "name": "sn-folders",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "devDependencies": {
     "angular": "^1.6.1",
     "babel-cli": "^6.18.0",
@@ -20,6 +20,8 @@
     "grunt-newer": "^1.2.0",
     "grunt-ng-annotate": "^3.0.0",
     "sn-components-api": "1.2.3",
+    "sn-models": "0.1.11",
+    "standard-file-js": "0.3.31",
     "sn-stylekit": "2.0.12"
   }
 }

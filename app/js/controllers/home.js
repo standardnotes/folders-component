@@ -132,13 +132,8 @@ class HomeCtrl {
     $scope.createTag = function(tag) {
       var title = tag.content.title;
       if(title.startsWith("![")) {
-        // Create smart tag
         /*
-        !["Untagged", "tags.length", "=", 0]
-        !["B-tags", "tags", "includes", ["title", "startsWith", "b"]]
-        !["Foo Notes", "title", "startsWith", "Foo"]
-        !["Archived", "archived", "=", true]
-        !["Pinned", "pinned", "=", true]
+        Create smart tag. Examples:
         !["Not Pinned", "pinned", "=", false]
         !["Last Day", "updated_at", ">", "1.days.ago"]
         !["Long", "text.length", ">", 500]
@@ -268,7 +263,7 @@ class HomeCtrl {
     componentManager.streamItems(["Tag", smartTagContentType], (newTags) => {
       $timeout(() => {
         var allTags = $scope.masterTag ? $scope.masterTag.rawTags : [];
-        var smartTags = $scope.smartMasterTag ? $scope.smartMasterTag.rawTags : [];
+        var smartTags = $scope.smartMasterTag ? $scope.smartMasterTag.rawTags : SNSmartTag.systemSmartTags();
         for(var tag of newTags) {
           var isSmartTag = tag.content_type == smartTagContentType;
           var arrayToUse = isSmartTag ? smartTags : allTags;

@@ -59,12 +59,19 @@ module.exports = function(grunt) {
         separator: ';',
       },
       app: {
-        src: ['node_modules/sn-components-api/dist/dist.js', 'app/js/**/*.js'],
+        src: [
+          'node_modules/sn-components-api/dist/dist.js',
+          'node_modules/sn-models/dist/sn-models.js',
+          'app/js/**/*.js'
+        ],
         dest: 'dist/app.js',
       },
 
       lib: {
         src: [
+          'node_modules/standard-file-js/dist/regenerator.js',
+          'node_modules/standard-file-js/dist/sfjs.js',
+          'node_modules/standard-file-js/vendor/lodash/lodash.custom.min.js',
           'node_modules/angular/angular.js',
         ],
         dest: 'dist/lib.js',
