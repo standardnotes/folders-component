@@ -1504,17 +1504,6 @@ var SNServerExtension = exports.SNServerExtension = function (_SFItem8) {
 var SNSmartTag = exports.SNSmartTag = function (_SNTag) {
   _inherits(SNSmartTag, _SNTag);
 
-  _createClass(SNSmartTag, [{
-    key: "isReferencingArchivedNotes",
-    value: function isReferencingArchivedNotes() {
-      var predicate = this.content.predicate;
-      if (Array.isArray(predicate)) {
-        predicate = SFPredicate.fromArray(predicate);
-      }
-      return predicate.keypath.includes("archived");
-    }
-  }]);
-
   function SNSmartTag(json_ob) {
     _classCallCheck(this, SNSmartTag);
 
@@ -1531,6 +1520,7 @@ var SNSmartTag = exports.SNSmartTag = function (_SNTag) {
         uuid: SNSmartTag.SystemSmartTagIdAllNotes,
         content: {
           title: "All notes",
+          isSystemTag: true,
           isAllTag: true,
           predicate: new SFPredicate.fromArray(["content_type", "=", "Note"])
         }
@@ -1538,6 +1528,7 @@ var SNSmartTag = exports.SNSmartTag = function (_SNTag) {
         uuid: SNSmartTag.SystemSmartTagIdArchivedNotes,
         content: {
           title: "Archived",
+          isSystemTag: true,
           isArchiveTag: true,
           predicate: new SFPredicate.fromArray(["archived", "=", true])
         }
@@ -1545,6 +1536,7 @@ var SNSmartTag = exports.SNSmartTag = function (_SNTag) {
         uuid: SNSmartTag.SystemSmartTagIdTrashedNotes,
         content: {
           title: "Trash",
+          isSystemTag: true,
           isTrashTag: true,
           predicate: new SFPredicate.fromArray(["content.trashed", "=", true])
         }
@@ -3212,11 +3204,11 @@ var SFAuthManager = exports.SFAuthManager = function () {
                                   while (1) {
                                     switch (_context10.prev = _context10.next) {
                                       case 0:
-                                        _this3.notifyEvent(SFAuthManager.DidSignInEvent);
-                                        _context10.next = 3;
+                                        _context10.next = 2;
                                         return _this3.handleAuthResponse(response, email, url, authParams, keys);
 
-                                      case 3:
+                                      case 2:
+                                        _this3.notifyEvent(SFAuthManager.DidSignInEvent);
                                         _this3.$timeout(function () {
                                           return _this3.unlockAndResolve(resolve, response);
                                         });
@@ -4832,6 +4824,18 @@ var SFModelManager = exports.SFModelManager = function () {
       }
 
       var missedRefs = this.popMissedReferenceStructsForObjects(processedObjects);
+
+      var _loop = function _loop(ref) {
+        var model = models.find(function (candidate) {
+          return candidate.uuid == ref.reference_uuid;
+        });
+        // Model should 100% be defined here, but let's not be too overconfident
+        if (model) {
+          var itemWaitingForTheValueInThisCurrentLoop = ref.for_item;
+          itemWaitingForTheValueInThisCurrentLoop.addItemAsRelationship(model);
+        }
+      };
+
       var _iteratorNormalCompletion14 = true;
       var _didIteratorError14 = false;
       var _iteratorError14 = undefined;
@@ -4840,8 +4844,7 @@ var SFModelManager = exports.SFModelManager = function () {
         for (var _iterator14 = missedRefs[Symbol.iterator](), _step14; !(_iteratorNormalCompletion14 = (_step14 = _iterator14.next()).done); _iteratorNormalCompletion14 = true) {
           var ref = _step14.value;
 
-          var itemWaitingForTheValueInThisCurrentLoop = ref.for_item;
-          itemWaitingForTheValueInThisCurrentLoop.addItemAsRelationship(model);
+          _loop(ref);
         }
       } catch (err) {
         _didIteratorError14 = true;
@@ -4893,7 +4896,7 @@ var SFModelManager = exports.SFModelManager = function () {
           /*
           We used to do string.split to get at the UUID, but surprisingly,
           the performance of this was about 20x worse then just getting the substring.
-           var matches = candidateKey.split(":")[0] == object.uuid;
+           let matches = candidateKey.split(":")[0] == object.uuid;
           */
           var matches = uuids.includes(candidateKey.substring(0, genericUuidLength));
           if (matches) {
@@ -4950,6 +4953,10 @@ var SFModelManager = exports.SFModelManager = function () {
     value: function resolveReferencesForItem(item) {
       var markReferencesDirty = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
 
+
+      if (item.errorDecrypting) {
+        return;
+      }
 
       // console.log("resolveReferencesForItem", item, "references", item.contentObject.references);
 
@@ -5023,12 +5030,12 @@ var SFModelManager = exports.SFModelManager = function () {
     value: function notifySyncObserversOfModels(models, source, sourceKey) {
       var _this9 = this;
 
-      var _loop = function _loop(observer) {
-        allRelevantItems = observer.types.includes("*") ? models : models.filter(function (item) {
+      var _loop2 = function _loop2(observer) {
+        var allRelevantItems = observer.types.includes("*") ? models : models.filter(function (item) {
           return observer.types.includes(item.content_type);
         });
-        validItems = [];
-        deletedItems = [];
+        var validItems = [],
+            deletedItems = [];
         var _iteratorNormalCompletion20 = true;
         var _didIteratorError20 = false;
         var _iteratorError20 = undefined;
@@ -5071,10 +5078,8 @@ var SFModelManager = exports.SFModelManager = function () {
       try {
         for (var _iterator19 = this.itemSyncObservers[Symbol.iterator](), _step19; !(_iteratorNormalCompletion19 = (_step19 = _iterator19.next()).done); _iteratorNormalCompletion19 = true) {
           var observer = _step19.value;
-          var allRelevantItems;
-          var validItems, deletedItems;
 
-          _loop(observer);
+          _loop2(observer);
         }
       } catch (err) {
         _didIteratorError19 = true;
@@ -6929,7 +6934,7 @@ var SFSingletonManager = exports.SFSingletonManager = function () {
       retrievedItems = retrievedItems || [];
       savedItems = savedItems || [];
 
-      var _loop2 = function _loop2(singletonHandler) {
+      var _loop3 = function _loop3(singletonHandler) {
         predicates = singletonHandler.predicates;
 
         var retrievedSingletonItems = _this17.modelManager.filterItemsWithPredicates(retrievedItems, predicates);
@@ -7034,7 +7039,7 @@ var SFSingletonManager = exports.SFSingletonManager = function () {
           var d;
           var singleton;
 
-          _loop2(singletonHandler);
+          _loop3(singletonHandler);
         }
       } catch (err) {
         _didIteratorError35 = true;
@@ -7534,6 +7539,7 @@ var SFSyncManager = exports.SFSyncManager = function () {
 
                               return _context72.abrupt("return", new Promise(function (innerResolve, innerReject) {
                                 _this19.$timeout(function () {
+                                  _this19.notifyEvent("local-data-incremental-load");
                                   incrementalCallback && incrementalCallback(current, total);
                                   decryptNext().then(innerResolve);
                                 });
@@ -7746,10 +7752,10 @@ var SFSyncManager = exports.SFSyncManager = function () {
 
                   try {
                     for (var _iterator39 = items[Symbol.iterator](), _step39; !(_iteratorNormalCompletion39 = (_step39 = _iterator39.next()).done); _iteratorNormalCompletion39 = true) {
-                      var item = _step39.value;
+                      var _item = _step39.value;
 
-                      if (item.deleted) {
-                        _this21.modelManager.removeItemLocally(item);
+                      if (_item.deleted) {
+                        _this21.modelManager.removeItemLocally(_item);
                       }
                     }
                   } catch (err) {
@@ -7799,7 +7805,7 @@ var SFSyncManager = exports.SFSyncManager = function () {
     key: "markAllItemsDirtyAndSaveOffline",
     value: function () {
       var _ref82 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee78(alternateUUIDs) {
-        var originalItems, _iteratorNormalCompletion40, _didIteratorError40, _iteratorError40, _iterator40, _step40, item, allItems, _iteratorNormalCompletion41, _didIteratorError41, _iteratorError41, _iterator41, _step41;
+        var originalItems, _iteratorNormalCompletion40, _didIteratorError40, _iteratorError40, _iterator40, _step40, item, allItems, _iteratorNormalCompletion41, _didIteratorError41, _iteratorError41, _iterator41, _step41, _item2;
 
         return regeneratorRuntime.wrap(function _callee78$(_context78) {
           while (1) {
@@ -7879,8 +7885,8 @@ var SFSyncManager = exports.SFSyncManager = function () {
                 _context78.prev = 32;
 
                 for (_iterator41 = allItems[Symbol.iterator](); !(_iteratorNormalCompletion41 = (_step41 = _iterator41.next()).done); _iteratorNormalCompletion41 = true) {
-                  item = _step41.value;
-                  item.setDirty(true);
+                  _item2 = _step41.value;
+                  _item2.setDirty(true);
                 }
                 _context78.next = 40;
                 break;
@@ -8666,7 +8672,6 @@ var SFSyncManager = exports.SFSyncManager = function () {
           while (1) {
             switch (_context86.prev = _context86.next) {
               case 0:
-                console.log("Sync error", response);
                 if (statusCode == 401) {
                   this.notifyEvent("sync-session-invalid");
                 }
@@ -8675,6 +8680,8 @@ var SFSyncManager = exports.SFSyncManager = function () {
 
                 if (!response) {
                   response = { error: { message: "Could not connect to server." } };
+                } else if (typeof response == 'string') {
+                  response = { error: { message: response } };
                 }
 
                 this.syncStatus.syncOpInProgress = false;
@@ -8692,7 +8699,7 @@ var SFSyncManager = exports.SFSyncManager = function () {
 
                 return _context86.abrupt("return", response);
 
-              case 13:
+              case 12:
               case "end":
                 return _context86.stop();
             }
@@ -9145,7 +9152,7 @@ var SFItem = exports.SFItem = function () {
       }
     }
 
-    if (!this.content.references) {
+    if (_typeof(this.content) === 'object' && !this.content.references) {
       this.content.references = [];
     }
   }
@@ -9238,11 +9245,15 @@ var SFItem = exports.SFItem = function () {
       // this.content = json.content will copy it by reference rather than value. So we need to do a deep merge after.
       // json.content can still be a string here. We copy it to this.content, then do a deep merge to transfer over all values.
 
-      try {
-        var parsedContent = typeof json.content === 'string' ? JSON.parse(json.content) : json.content;
-        SFItem.deepMerge(this.contentObject, parsedContent);
-      } catch (e) {
-        console.log("Error while updating item from json", e);
+      if (json.errorDecrypting) {
+        this.content = json.content;
+      } else {
+        try {
+          var parsedContent = typeof json.content === 'string' ? JSON.parse(json.content) : json.content;
+          SFItem.deepMerge(this.contentObject, parsedContent);
+        } catch (e) {
+          console.log("Error while updating item from json", e);
+        }
       }
 
       if (this.created_at) {
@@ -9600,6 +9611,11 @@ var SFItem = exports.SFItem = function () {
   }, {
     key: "contentObject",
     get: function get() {
+
+      if (this.errorDecrypting) {
+        return this.content;
+      }
+
       if (!this.content) {
         this.content = {};
         return this.content;
@@ -9921,28 +9937,100 @@ var SFPredicate = exports.SFPredicate = function () {
     this.keypath = keypath;
     this.operator = operator;
     this.value = value;
+
+    // Preprocessing to make predicate evaluation faster.
+    // Won't recurse forever, but with arbitrarily large input could get stuck. Hope there are input size limits
+    // somewhere else.
+    if (SFPredicate.IsRecursiveOperator(this.operator)) {
+      this.value = this.value.map(SFPredicate.fromArray);
+    }
   }
 
   _createClass(SFPredicate, null, [{
     key: "fromArray",
     value: function fromArray(array) {
-      var pred = new SFPredicate();
-      pred.keypath = array[0];
-      pred.operator = array[1];
-      pred.value = array[2];
-      return pred;
+      return new SFPredicate(array[0], array[1], array[2]);
     }
   }, {
     key: "ObjectSatisfiesPredicate",
     value: function ObjectSatisfiesPredicate(object, predicate) {
-      var valueAtKeyPath = predicate.keypath.split('.').reduce(function (previous, current) {
-        return previous && previous[current];
-      }, object);
+      // Predicates may not always be created using the official constructor
+      // so if it's still an array here, convert to object
+      if (Array.isArray(predicate)) {
+        predicate = this.fromArray(predicate);
+      }
+
+      if (SFPredicate.IsRecursiveOperator(predicate.operator)) {
+        if (predicate.operator === "and") {
+          var _iteratorNormalCompletion49 = true;
+          var _didIteratorError49 = false;
+          var _iteratorError49 = undefined;
+
+          try {
+            for (var _iterator49 = predicate.value[Symbol.iterator](), _step49; !(_iteratorNormalCompletion49 = (_step49 = _iterator49.next()).done); _iteratorNormalCompletion49 = true) {
+              var subPredicate = _step49.value;
+
+              if (!this.ObjectSatisfiesPredicate(object, subPredicate)) {
+                return false;
+              }
+            }
+          } catch (err) {
+            _didIteratorError49 = true;
+            _iteratorError49 = err;
+          } finally {
+            try {
+              if (!_iteratorNormalCompletion49 && _iterator49.return) {
+                _iterator49.return();
+              }
+            } finally {
+              if (_didIteratorError49) {
+                throw _iteratorError49;
+              }
+            }
+          }
+
+          return true;
+        }
+        if (predicate.operator === "or") {
+          var _iteratorNormalCompletion50 = true;
+          var _didIteratorError50 = false;
+          var _iteratorError50 = undefined;
+
+          try {
+            for (var _iterator50 = predicate.value[Symbol.iterator](), _step50; !(_iteratorNormalCompletion50 = (_step50 = _iterator50.next()).done); _iteratorNormalCompletion50 = true) {
+              var subPredicate = _step50.value;
+
+              if (this.ObjectSatisfiesPredicate(object, subPredicate)) {
+                return true;
+              }
+            }
+          } catch (err) {
+            _didIteratorError50 = true;
+            _iteratorError50 = err;
+          } finally {
+            try {
+              if (!_iteratorNormalCompletion50 && _iterator50.return) {
+                _iterator50.return();
+              }
+            } finally {
+              if (_didIteratorError50) {
+                throw _iteratorError50;
+              }
+            }
+          }
+
+          return false;
+        }
+      }
 
       var predicateValue = predicate.value;
       if (typeof predicateValue == 'string' && predicateValue.includes(".ago")) {
         predicateValue = this.DateFromString(predicateValue);
       }
+
+      var valueAtKeyPath = predicate.keypath.split('.').reduce(function (previous, current) {
+        return previous && previous[current];
+      }, object);
 
       var falseyValues = [false, "", null, undefined, NaN];
 
@@ -9993,29 +10081,29 @@ var SFPredicate = exports.SFPredicate = function () {
         } else {
           innerPredicate = predicateValue;
         }
-        var _iteratorNormalCompletion49 = true;
-        var _didIteratorError49 = false;
-        var _iteratorError49 = undefined;
+        var _iteratorNormalCompletion51 = true;
+        var _didIteratorError51 = false;
+        var _iteratorError51 = undefined;
 
         try {
-          for (var _iterator49 = valueAtKeyPath[Symbol.iterator](), _step49; !(_iteratorNormalCompletion49 = (_step49 = _iterator49.next()).done); _iteratorNormalCompletion49 = true) {
-            var obj = _step49.value;
+          for (var _iterator51 = valueAtKeyPath[Symbol.iterator](), _step51; !(_iteratorNormalCompletion51 = (_step51 = _iterator51.next()).done); _iteratorNormalCompletion51 = true) {
+            var obj = _step51.value;
 
             if (this.ObjectSatisfiesPredicate(obj, innerPredicate)) {
               return true;
             }
           }
         } catch (err) {
-          _didIteratorError49 = true;
-          _iteratorError49 = err;
+          _didIteratorError51 = true;
+          _iteratorError51 = err;
         } finally {
           try {
-            if (!_iteratorNormalCompletion49 && _iterator49.return) {
-              _iterator49.return();
+            if (!_iteratorNormalCompletion51 && _iterator51.return) {
+              _iterator51.return();
             }
           } finally {
-            if (_didIteratorError49) {
-              throw _iteratorError49;
+            if (_didIteratorError51) {
+              throw _iteratorError51;
             }
           }
         }
@@ -10034,29 +10122,29 @@ var SFPredicate = exports.SFPredicate = function () {
   }, {
     key: "ItemSatisfiesPredicates",
     value: function ItemSatisfiesPredicates(item, predicates) {
-      var _iteratorNormalCompletion50 = true;
-      var _didIteratorError50 = false;
-      var _iteratorError50 = undefined;
+      var _iteratorNormalCompletion52 = true;
+      var _didIteratorError52 = false;
+      var _iteratorError52 = undefined;
 
       try {
-        for (var _iterator50 = predicates[Symbol.iterator](), _step50; !(_iteratorNormalCompletion50 = (_step50 = _iterator50.next()).done); _iteratorNormalCompletion50 = true) {
-          var predicate = _step50.value;
+        for (var _iterator52 = predicates[Symbol.iterator](), _step52; !(_iteratorNormalCompletion52 = (_step52 = _iterator52.next()).done); _iteratorNormalCompletion52 = true) {
+          var predicate = _step52.value;
 
           if (!this.ItemSatisfiesPredicate(item, predicate)) {
             return false;
           }
         }
       } catch (err) {
-        _didIteratorError50 = true;
-        _iteratorError50 = err;
+        _didIteratorError52 = true;
+        _iteratorError52 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion50 && _iterator50.return) {
-            _iterator50.return();
+          if (!_iteratorNormalCompletion52 && _iterator52.return) {
+            _iterator52.return();
           }
         } finally {
-          if (_didIteratorError50) {
-            throw _iteratorError50;
+          if (_didIteratorError52) {
+            throw _iteratorError52;
           }
         }
       }
@@ -10077,6 +10165,11 @@ var SFPredicate = exports.SFPredicate = function () {
         date.setHours(date.getHours() - offset);
       }
       return date;
+    }
+  }, {
+    key: "IsRecursiveOperator",
+    value: function IsRecursiveOperator(operator) {
+      return ["and", "or"].includes(operator);
     }
   }]);
 
@@ -10240,29 +10333,29 @@ var SFItemHistory = exports.SFItemHistory = function () {
 
     // Deserialize the entries into entry objects.
     if (params.entries) {
-      var _iteratorNormalCompletion51 = true;
-      var _didIteratorError51 = false;
-      var _iteratorError51 = undefined;
+      var _iteratorNormalCompletion53 = true;
+      var _didIteratorError53 = false;
+      var _iteratorError53 = undefined;
 
       try {
-        for (var _iterator51 = params.entries[Symbol.iterator](), _step51; !(_iteratorNormalCompletion51 = (_step51 = _iterator51.next()).done); _iteratorNormalCompletion51 = true) {
-          var entryParams = _step51.value;
+        for (var _iterator53 = params.entries[Symbol.iterator](), _step53; !(_iteratorNormalCompletion53 = (_step53 = _iterator53.next()).done); _iteratorNormalCompletion53 = true) {
+          var entryParams = _step53.value;
 
           var entry = this.createEntryForItem(entryParams.item);
           entry.setPreviousEntry(this.getLastEntry());
           this.entries.push(entry);
         }
       } catch (err) {
-        _didIteratorError51 = true;
-        _iteratorError51 = err;
+        _didIteratorError53 = true;
+        _iteratorError53 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion51 && _iterator51.return) {
-            _iterator51.return();
+          if (!_iteratorNormalCompletion53 && _iterator53.return) {
+            _iterator53.return();
           }
         } finally {
-          if (_didIteratorError51) {
-            throw _iteratorError51;
+          if (_didIteratorError53) {
+            throw _iteratorError53;
           }
         }
       }
