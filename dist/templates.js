@@ -24,7 +24,7 @@ angular.module('app').run(['$templateCache', function($templateCache) {
     "{{tag.displayTitle}}\n" +
     "</div>\n" +
     "<input class='title' mb-autofocus='true' ng-if='!tag.dummy &amp;&amp; tag.editing' ng-keyup='$event.keyCode == 13 &amp;&amp; saveTagRename(tag)' ng-model='tag.displayTitle' should-focus='true'>\n" +
-    "<div class='action-menu' ng-if='!tag.dummy &amp;&amp; tag.selected &amp;&amp; !tag.editing'>\n" +
+    "<div class='action-menu' ng-if='!tag.dummy &amp;&amp; tag.selected &amp;&amp; !tag.editing &amp;&amp; !tag.content.isSystemTag'>\n" +
     "<div class='sk-button info' ng-click='addChild($event, tag);'>\n" +
     "<div class='sk-label'>+</div>\n" +
     "</div>\n" +

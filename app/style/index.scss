@@ -198,6 +198,7 @@ body {
         text-overflow: ellipsis;
         pointer-events: none;
         white-space: nowrap;
+        user-select: none;
       }
 
       .action-menu {

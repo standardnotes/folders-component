@@ -1991,7 +1991,7 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
       $scope.setSelectedForTag($scope.selectedTag, false);
     }
 
-    if ($scope.selectedTag === tag && !tag.master) {
+    if ($scope.selectedTag === tag && !tag.master && !tag.content.isSystemTag) {
       tag.editing = true;
     }
 
@@ -2063,7 +2063,7 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
             if ($scope.selectOnLoad && $scope.selectOnLoad.uuid == tag.uuid) {
               $scope.selectOnLoad = null;
               $scope.selectTag(tag);
-            } else if (existing && $scope.selectedTag.uuid == existing.uuid) {
+            } else if (existing && $scope.selectedTag && $scope.selectedTag.uuid == existing.uuid) {
               // Don't call $scope.selectTag(existing) as this will double select a tag, which will enable editing for it.
               $scope.setSelectedForTag(existing, true);
             }
@@ -2422,7 +2422,7 @@ var TagTree = function () {
 
         // is newly creating tag
         if (!tag.uuid) {
-          return "contrast";
+          return "neutral";
         }
 
         var gen = $scope.generationForTag(tag);

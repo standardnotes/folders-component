@@ -46689,7 +46689,7 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
       $scope.setSelectedForTag($scope.selectedTag, false);
     }
 
-    if ($scope.selectedTag === tag && !tag.master) {
+    if ($scope.selectedTag === tag && !tag.master && !tag.content.isSystemTag) {
       tag.editing = true;
     }
 
@@ -46761,7 +46761,7 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
             if ($scope.selectOnLoad && $scope.selectOnLoad.uuid == tag.uuid) {
               $scope.selectOnLoad = null;
               $scope.selectTag(tag);
-            } else if (existing && $scope.selectedTag.uuid == existing.uuid) {
+            } else if (existing && $scope.selectedTag && $scope.selectedTag.uuid == existing.uuid) {
               // Don't call $scope.selectTag(existing) as this will double select a tag, which will enable editing for it.
               $scope.setSelectedForTag(existing, true);
             }
@@ -47121,7 +47121,7 @@ var TagTree = function () {
 
         // is newly creating tag
         if (!tag.uuid) {
-          return "contrast";
+          return "neutral";
         }
 
         var gen = $scope.generationForTag(tag);
@@ -57221,7 +57221,7 @@ if (globalScope) {
     "{{tag.displayTitle}}\n" +
     "</div>\n" +
     "<input class='title' mb-autofocus='true' ng-if='!tag.dummy &amp;&amp; tag.editing' ng-keyup='$event.keyCode == 13 &amp;&amp; saveTagRename(tag)' ng-model='tag.displayTitle' should-focus='true'>\n" +
-    "<div class='action-menu' ng-if='!tag.dummy &amp;&amp; tag.selected &amp;&amp; !tag.editing'>\n" +
+    "<div class='action-menu' ng-if='!tag.dummy &amp;&amp; tag.selected &amp;&amp; !tag.editing &amp;&amp; !tag.content.isSystemTag'>\n" +
     "<div class='sk-button info' ng-click='addChild($event, tag);'>\n" +
     "<div class='sk-label'>+</div>\n" +
     "</div>\n" +

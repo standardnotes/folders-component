@@ -115,7 +115,7 @@ class TagTree {
 
       // is newly creating tag
       if(!tag.uuid) {
-        return "contrast";
+        return "neutral";
       }
 
 

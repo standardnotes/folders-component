@@ -9,7 +9,7 @@
       %input.title{"ng-if" => "!tag.dummy && tag.editing", "mb-autofocus" => "true", "should-focus" => "true", "ng-model" => "tag.displayTitle",
       "ng-keyup" => "$event.keyCode == 13 && saveTagRename(tag)"}
 
-      .action-menu{"ng-if" => "!tag.dummy && tag.selected && !tag.editing"}
+      .action-menu{"ng-if" => "!tag.dummy && tag.selected && !tag.editing && !tag.content.isSystemTag"}
         .sk-button.info{"ng-click" => "addChild($event, tag);"}
           .sk-label +
         .sk-button.danger{"ng-if" => "!tag.master", "ng-click" => "removeTag(tag); $event.stopPropagation();"}

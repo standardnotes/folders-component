@@ -222,7 +222,7 @@ class HomeCtrl {
         $scope.setSelectedForTag($scope.selectedTag, false);
       }
 
-      if($scope.selectedTag === tag && !tag.master) {
+      if($scope.selectedTag === tag && !tag.master && !tag.content.isSystemTag) {
         tag.editing = true;
       }
 
@@ -285,7 +285,7 @@ class HomeCtrl {
             if($scope.selectOnLoad && $scope.selectOnLoad.uuid == tag.uuid)  {
               $scope.selectOnLoad = null;
               $scope.selectTag(tag);
-            } else if(existing && $scope.selectedTag.uuid == existing.uuid) {
+            } else if(existing && $scope.selectedTag && $scope.selectedTag.uuid == existing.uuid) {
               // Don't call $scope.selectTag(existing) as this will double select a tag, which will enable editing for it.
               $scope.setSelectedForTag(existing, true);
             }

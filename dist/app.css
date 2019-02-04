@@ -237,6 +237,7 @@ body {
   text-overflow: ellipsis;
   pointer-events: none;
   white-space: nowrap;
+  user-select: none;
 }
 .tag-tree .self .tag-info .action-menu {
   display: inline-flex;

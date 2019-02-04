@@ -1,6 +1,6 @@
 {
   "name": "sn-folders",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "devDependencies": {
     "angular": "^1.6.1",
     "babel-cli": "^6.18.0",
