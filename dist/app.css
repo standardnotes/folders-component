@@ -132,7 +132,7 @@ body {
 }
 .tag-tree .self.selected:before {
   content: '';
-  min-height: 26px;
+  min-height: 25px;
   position: absolute;
   left: 0;
   right: 0;
@@ -172,7 +172,7 @@ body {
 }
 .tag-tree .self:hover:not(.selected):before {
   content: '';
-  min-height: 26px;
+  min-height: 25px;
   position: absolute;
   left: 0;
   right: 0;
@@ -204,8 +204,8 @@ body {
 .tag-tree .self .tag-info {
   display: flex;
   flex-grow: 1;
-  min-height: 26px;
-  line-height: 26px;
+  min-height: 25px;
+  line-height: 25px;
 }
 .tag-tree .self .tag-info.level-1 .title {
   font-weight: 600;
@@ -228,8 +228,8 @@ body {
   color: var(--sn-stylekit-foreground-color);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
   font-size: var(--sn-stylekit-base-font-size);
-  line-height: 26px;
-  height: 26px;
+  line-height: 25px;
+  height: 25px;
 }
 .tag-tree .self .tag-info .title {
   display: flex;
@@ -246,9 +246,9 @@ body {
 .tag-tree .self .tag-info .action-menu {
   display: inline-flex;
   margin-left: 10px;
-  height: 26px;
+  height: 25px;
   font-size: 12px;
-  line-height: 26px;
+  line-height: 25px;
 }
 .tag-tree .self .tag-info .action-menu .sk-button {
   opacity: 0;
