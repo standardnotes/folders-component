@@ -1,7 +1,7 @@
 @import 'reset';
 
 $tag-height: 26px;
-$font-size: 14px;
+$font-size: var(--sn-stylekit-base-font-size);
 $font-family: -apple-system, BlinkMacSystemFont,
     "Segoe UI", "Roboto", "Oxygen",
     "Ubuntu", "Cantarell", "Fira Sans",
@@ -170,9 +170,15 @@ body {
       }
 
       .sk-circle {
-        margin: 8px 5px 0 0;
-        min-width: 11px;
-        min-height: 11px;
+        margin: 8.5px 6px 0 0;
+        $size: 10px;
+        min-width: $size;
+        min-height: $size;
+
+        &.small {
+          width: $size;
+          height: $size;
+        }
       }
 
       input.title {
