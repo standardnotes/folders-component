@@ -383,7 +383,6 @@ var ComponentManager = function () {
         // presave block allows client to gain the benefit of performing something in the debounce cycle.
         presave && presave();
 
-        var mappedUuids = [];
         var mappedItems = [];
         var _iteratorNormalCompletion2 = true;
         var _didIteratorError2 = false;
@@ -393,12 +392,6 @@ var ComponentManager = function () {
           for (var _iterator2 = itemsToSave[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
             var item = _step2.value;
 
-            // To prevent duplicates
-            if (mappedUuids.includes(item.uuid)) {
-              continue;
-            }
-
-            mappedUuids.push(item.uuid);
             item.updated_at = new Date();
             mappedItems.push(_this3.jsonObjectForItem(item));
           }
@@ -442,6 +435,17 @@ var ComponentManager = function () {
           clearTimeout(this.pendingSave);
         }
 
+        var incomingIds = items.map(function (item) {
+          return item.uuid;
+        });
+
+        // Replace any existing save items with incoming values
+        // Only keep items here who are not in incomingIds
+        this.pendingSaveItems = this.pendingSaveItems.filter(function (item) {
+          return !incomingIds.includes(item.uuid);
+        });
+
+        // Add new items, now that we've made sure it's cleared of incoming items.
         this.pendingSaveItems = this.pendingSaveItems.concat(items);
         this.pendingSave = setTimeout(function () {
           saveBlock(_this3.pendingSaveItems);
