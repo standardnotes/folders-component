@@ -12,7 +12,6 @@ class HomeCtrl {
 
     $scope.resolveRawTags = function(masterTag) {
       let sortTags = (tags) => {
-        console.log(tags);
         return tags.sort((a, b) => {
           const aTitle = a.content.title.toLowerCase(), bTitle = b.content.title.toLowerCase();
           return (aTitle > bTitle) - (aTitle < bTitle);

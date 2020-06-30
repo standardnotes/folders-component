@@ -1714,7 +1714,6 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
 
   $scope.resolveRawTags = function (masterTag) {
     var sortTags = function sortTags(tags) {
-      console.log(tags);
       return tags.sort(function (a, b) {
         var aTitle = a.content.title.toLowerCase(),
             bTitle = b.content.title.toLowerCase();
