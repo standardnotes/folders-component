@@ -47475,7 +47475,9 @@ var HomeCtrl = function HomeCtrl($rootScope, $scope, $timeout) {
   $scope.resolveRawTags = function (masterTag) {
     var sortTags = function sortTags(tags) {
       return tags.sort(function (a, b) {
-        return (a.content.title > b.content.title) - (a.content.title < b.content.title);
+        var aTitle = a.content.title.toLowerCase(),
+            bTitle = b.content.title.toLowerCase();
+        return (aTitle > bTitle) - (aTitle < bTitle);
       });
     };
     var resolved = masterTag.rawTags.slice();
