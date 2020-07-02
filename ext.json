@@ -1,0 +1,8 @@
+{
+    "identifier": "org.yourdomain.my-extension",
+    "name": "Folders",
+    "content_type": "SN|Component",
+    "area": "tags-list",
+    "version": "1.0.0",
+    "url": "http://localhost:8001"
+}
