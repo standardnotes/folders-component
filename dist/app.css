@@ -234,7 +234,7 @@ body {
 .tag-tree .self .tag-info .title {
   display: flex;
   background-color: transparent;
-  font-weight: 200;
+  font-weight: 400;
   font-size: var(--sn-stylekit-base-font-size);
   border: none;
   cursor: pointer;
